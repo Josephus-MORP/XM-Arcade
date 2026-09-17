@@ -129,7 +129,7 @@ export function tagVal(e, name) { const t = (e.tags || []).find((t) => t[0] === 
 export function tagVals(e, name) { return (e.tags || []).filter((t) => t[0] === name).map((t) => t[1]); }
 
 /* ---- Blossom (BUD-01/02) media upload with Nostr auth (kind 24242) ---- */
-export function blossomServers() { return store.get("xm.blossom.v1", ["https://blossom.primal.net", "https://blossom.ditto.pub"]); }
+export function blossomServers() { return store.get("xm.blossom.v1", ["https://blossom.primal.net", "https://blossom.ditto.pub", "https://data.haus", "https://nostr.download", "https://blossom.band"]); }
 export function setBlossomServers(list) { store.set("xm.blossom.v1", list); }
 export async function blossomUpload(file, signTemplate) {
   const servers = blossomServers();

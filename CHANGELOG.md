@@ -4,6 +4,16 @@ All notable changes to this project. Versions follow [SemVer](https://semver.org
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-09-17
+
+- Full native Android rebuild: Kotlin + Jetpack Compose (versionCode 3),
+  same package id for update continuity.
+- Shorts + Music: hashtag chips follow/unfollow on tap, green dot on followed
+  tags; followed tags render green in note text.
+- Profile pane: key backup removed (Settings → My keys is the only place).
+- Concord groups are not NIP-29: README corrected to the Concord protocol
+  (Armada family).
+- Default Blossom servers add data.haus, nostr.download, blossom.band.
 - Renamed XMR payments: Xap → Xap (buttons, sheets, toasts).
 - Appearance: Secondary color hue slider (Settings + side panel), saved on device.
 - Removed the NIP-07 browser-extension login (Android-first: device key or Amber).

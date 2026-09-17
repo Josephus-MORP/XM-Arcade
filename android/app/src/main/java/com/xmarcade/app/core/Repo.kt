@@ -410,7 +410,7 @@ object Repo {
 
   // ---------- blossom ----------
   fun blossomServers(): List<String> =
-    Store.getStrList("xm.blossom.v1", emptyList()).ifEmpty { listOf("https://blossom.primal.net", "https://blossom.ditto.pub") }
+    Store.getStrList("xm.blossom.v1", emptyList()).ifEmpty { listOf("https://blossom.primal.net", "https://blossom.ditto.pub", "https://data.haus", "https://nostr.download", "https://blossom.band") }
   fun setBlossomServers(list: List<String>) = Store.setStrList("xm.blossom.v1", list)
 
   data class BlossomUp(val url: String, val sha256: String, val mime: String, val size: Long, val name: String)

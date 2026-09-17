@@ -15,7 +15,7 @@ No build step to run it. No CDN at runtime. Just static files + relays.
 
 ## Get the app
 
-- **Android:** download `XM-Arcade-v1.0.0.apk` from
+- **Android:** download `XM-Arcade-v1.0.1.apk` from
   [Releases](../../releases) and install it (allow "unknown apps" once).
   Requires Android 7+ (`com.xmarcade.app`).
 - **Web:** download `XM-Arcade-standalone.html` from
@@ -34,7 +34,7 @@ guides (`G`), relay health, nav trace. `Esc` goes back.
 | **Shorts** | NIP-71 kinds 21/22 global · tags · follows feeds, tap-to-play/pause video, inline replies, tag follow, zap + xap, Studio upload (Blossom + kind-22) |
 | **Mini Apps** | webxdc arcade: 2 built-in playable games, `.xdc`/`.webxdc`/`.zip` uploads (extracted + executed in a `sandbox="allow-scripts"` iframe with a webxdc.js shim), Nostr + Blossom `#webxdc` discovery (incl. NIP-50 search), **Feed to Concord channel** (Blossom upload + channel Play card) |
 | **Music** | Relay audio discovery (notes + kind-1063 carrying audio), search, hashtag filters, queue, sticky player, per-track zaps + XMR xaps, Studio audio publish |
-| **Chats** | **Concord groups**: live NIP-29 groups (kinds 39000 + kind-9, live tail subscription). Public channels are signed plaintext; 🔒 channels add a shared **Concord key** (NIP-44) created on-device, importable/exportable, shareable to members as NIP-59 gift wraps |
+| **Chats** | **Concord groups** (Concord protocol, not NIP-29): live channel chats with tail subscription. Public channels are signed plaintext; 🔒 channels add a shared **Concord key** (NIP-44) created on-device, importable/exportable, shareable to members as NIP-59 gift wraps |
 | **Wallet** | **sats**: real NWC (NIP-47) — balance, invoices, payments, Lightning-address send, NIP-57 zaps, self-custodial Alby Hub guide. **XMR**: real `monero-wallet-rpc` adapter — version/address/balance/transfer, one-tap Xaps (wallet RPC or external-app handoff like Cake Wallet). Neither half ever asks for or stores seeds |
 | **Settings** | Key backup (npub/nsec), theme, starting pane, relay editor with live health, group-relay editor, Blossom servers, followed tags |
 
@@ -93,7 +93,7 @@ lose them you can never publish an update — Android requires the same key.
 1. Bump `VERSION`, add a `CHANGELOG.md` entry.
 2. Set repo secrets `XM_KEYSTORE_BASE64` (base64 of the keystore),
    `XM_STORE_PASSWORD`, `XM_KEY_ALIAS`, `XM_KEY_PASSWORD`.
-3. `git tag v1.0.0 && git push origin v1.0.0` — CI builds, signs, and publishes
+3. `git tag v1.0.1 && git push origin v1.0.1` — CI builds, signs, and publishes
    the GitHub Release with the APK + standalone HTML.
 
 No terminal? Publish entirely in the browser: upload the project files with
@@ -115,7 +115,7 @@ js/vendor/            vendored nostr-tools (pure crypto) + SimplePool — MIT,
 js/util.js            dom/store/icons/avatar/format helpers
 js/nostr.js           relay pool, NIP-19, publish/query, Blossom upload
 js/signer.js          local / NIP-46-Amber signing + NIP-44
-js/data.js            profiles, notes, NIP-71 shorts, NIP-29+Concord groups,
+js/data.js            profiles, notes, NIP-71 shorts, Concord groups,
                       music, #webxdc discovery, emoji packs, demo fallback
 js/wallets.js         NWC client, LNURL + BOLT11 helpers, NIP-57 zaps,
                       monero-wallet-rpc adapter
@@ -144,16 +144,19 @@ release/              generated outputs (git-ignored): standalone HTML + APKs
 
 ## NIPs spoken
 
-01 · 04 (retired, not used) · 09 (NIP-44 chat encryption) · 10 · 19 · 29 ·
+01 · 04 (retired, not used) · 09 (NIP-44 chat encryption) · 10 · 19 ·
 44 · 46 · 47 · 57 · 59 · 71 · 96/Blossom (BUD-01/02 uploads + kind-24242 auth).
 
-## Verified (v1.0.0)
+Group chats speak the Concord protocol (Armada family — see
+[concord-protocol/concord](https://github.com/concord-protocol/concord)), not NIP-29.
+
+## Verified (v1.0.1)
 
 `tools/qa/standalone.js` boots the single-file build headless: onboarding
 renders, a fresh account is created against **live relays (3/3)** with a real
 NIP-71 short playing, both embedded games mount error-free — **zero page
-errors**. Earlier live-network checks exercised all 7 panes, real NIP-29 groups
-with kind-9 messages, real audio tracks, and a signed kind-1 publish read back
+errors**. Earlier live-network checks exercised all 7 panes, real Concord-group channels
+with live messages, real audio tracks, and a signed kind-1 publish read back
 from 3/3 relays.
 
 ## License
