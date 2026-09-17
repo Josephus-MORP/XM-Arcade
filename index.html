@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="XM Arcade — a live Nostr client: Concord groups, shorts, sats + XMR wallets, music, profile, webxdc arcade. Amber-compatible.">
+<title>XM Arcade — Nostr client</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/live.css">
+<!--
+  XM Arcade v1.0 — live Nostr client.
+  Crypto: vendored nostr-tools (MIT © Paul Miller) + noble/secp256k1 — no CDN needed.
+  Relays carry signed events only. Keys stay on this device or in your signer.
+-->
+</head>
+<body>
+<div class="workbench">
+  <aside class="sidepanel">
+    <div class="brandmark">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="bm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7bff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#bm)"/><path d="M13 13l14 14M27 13 13 27" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg>
+      <div><b>X<span style="color:#f60">M</span> Arcade</b><small>Nostr client · live build</small></div>
+    </div>
+    <p>A real Nostr client in the prototype's clothes: the apps dropdown, shorts (global / tags / follows), the Mini Apps webxdc arcade with Feed-to-Concord, plus Concord chats, sats + XMR wallets, music, profile, and settings. Amber-compatible signing.</p>
+
+    <h3>Appearance</h3>
+    <div class="seg" id="themeSeg">
+      <button data-theme-set="light" aria-pressed="false">Light</button>
+      <button data-theme-set="dark" aria-pressed="true">Dark</button>
+    </div>
+    <div class="hue-block"><span>Secondary color</span>
+      <input type="range" class="accentHue" min="0" max="360" step="1" value="187" aria-label="Secondary color">
+    </div>
+    <div style="height:9px"></div>
+    <button class="kbtn" id="mapBtn">Screen map <span>every screen</span></button>
+    <button class="kbtn" id="coachBtn">Signing <span>Amber · NIP-46</span></button>
+    <button class="kbtn" id="wireBtn">Wireframe mode <span>off</span></button>
+    <button class="kbtn" id="guidesBtn">Layout guides <span>off</span></button>
+    <button class="kbtn" id="resetBtn">Restart onboarding <span>from splash</span></button>
+
+    <h3>Relays</h3>
+    <div class="wb-relays" id="wbRelays">probing…</div>
+
+    <h3>Keyboard</h3>
+    <div class="hintbox">
+      <b style="color:var(--ui-text)">Esc</b> back / close sheet &nbsp;·&nbsp; <b style="color:var(--ui-text)">M</b> screen map<br>
+      <b style="color:var(--ui-text)">T</b> theme &nbsp;·&nbsp; <b style="color:var(--ui-text)">G</b> guides &nbsp;·&nbsp; <b style="color:var(--ui-text)">W</b> wireframe
+    </div>
+
+    <h3>Navigation trace</h3>
+    <div class="trace" id="trace"></div>
+
+    <h3>Notes</h3>
+    <p>Live events are labeled <b>live</b>; offline placeholders are labeled <b>demo</b> and never touch relays. Wallets are remote controls: sats via NWC, XMR via your own monero-wallet-rpc.</p>
+  </aside>
+
+  <div class="stage">
+    <div class="device-scale">
+      <div class="device" id="device">
+        <div class="island"></div>
+        <div class="screen">
+          <div class="phone dark-chrome" id="phone"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

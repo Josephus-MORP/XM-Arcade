@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tap Race</title>
+<script src="../webxdc.js"></script>
+<style>
+  *{box-sizing:border-box} body{margin:0;min-height:100vh;background:#141020;color:#fff;font-family:ui-sans-serif,system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:26px 20px}
+  h1{font-size:20px;margin:0} .sub{color:#9aa;font-size:12.5px;margin:6px 0 16px}
+  .hud{display:flex;gap:12px;width:100%;max-width:340px;margin-bottom:14px}
+  .hud div{flex:1;background:#1e1930;border-radius:12px;padding:10px;text-align:center}
+  .hud b{display:block;font-size:24px} .hud span{font-size:11px;color:#9aa}
+  #pad{width:100%;max-width:340px;height:220px;border-radius:22px;border:0;font-size:22px;font-weight:800;color:#fff;background:linear-gradient(135deg,#8b7bff,#22d3ee);cursor:pointer}
+  #pad:disabled{filter:grayscale(.7);opacity:.6} #pad:active{transform:scale(.98)}
+  #feed{margin-top:14px;width:100%;max-width:340px;background:#1e1930;border:0;color:#fff;border-radius:12px;padding:12px;font-weight:700;cursor:pointer}
+  .best{margin-top:10px;font-size:12px;color:#9aa}
+</style></head>
+<body>
+  <h1>Tap Race 🏁</h1><div class="sub">20 seconds. Most taps wins.</div>
+  <div class="hud"><div><b id="taps">0</b><span>taps</span></div><div><b id="time">20.0</b><span>seconds</span></div></div>
+  <button id="pad">TAP!</button>
+  <button id="feed">Feed score to channel</button>
+  <div class="best" id="best"></div>
+<script>
+  var taps=0, left=200, timer=null, best=0, me=(webxdc.selfName||'you');
+  var tapsEl=document.getElementById('taps'), timeEl=document.getElementById('time'), pad=document.getElementById('pad'), bestEl=document.getElementById('best');
+  function tick(){ left--; timeEl.textContent=(left/10).toFixed(1);
+    if(left<=0){ clearInterval(timer); timer=null; pad.disabled=true;
+      webxdc.sendUpdate({payload:{name:me,taps:taps}}, me+' scored '+taps);
+      bestEl.textContent = taps>=best ? 'New table record: '+taps+'!' : 'Table record: '+best+' — you: '+taps;
+    } }
+  pad.onclick=function(){ if(!timer){ timer=setInterval(tick,100); } if(left>0){ taps++; tapsEl.textContent=taps; } };
+  document.getElementById('feed').onclick=function(){ webxdc.sendToChat({text:'🏁 Tap Race: '+me+' tapped '+taps+' in 20s'}); };
+  webxdc.setUpdateListener(function(updates){
+    updates.forEach(function(u){ var p=u.payload&&u.payload.payload; if(p&&typeof p.taps==='number'&&p.taps>best){ best=p.taps; bestEl.textContent='Table record: '+best+(p.name?' by '+p.name:''); } });
+  },0);
+</script></body></html>

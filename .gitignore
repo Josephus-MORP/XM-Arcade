@@ -1,0 +1,26 @@
+# Generated outputs (rebuild with tools/build-web.py / tools/build-apk.sh)
+release/
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.iml
+.gradle/
+
+# Signing keys — NEVER commit these
+*.keystore
+*.jks
+keystore.properties
+
+# Node / QA
+node_modules/
+package-lock.json
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+android/app/src/main/assets/www/index.html
