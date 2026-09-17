@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Single source of truth for the marketing version (repo root).
+def appVersion = new File(rootDir, '../VERSION').text.trim()
+def xmStore = findProperty('XM_STORE_FILE')
+
+android {
+    namespace 'com.xmarcade.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.xmarcade.app'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName appVersion
+    }
+
+    signingConfigs {
+        release {
+            // Credentials come from environment (ORG_GRADLE_PROJECT_XM_*)
+            // or -P flags. Never commit keys or passwords.
+            if (xmStore) {
+                storeFile file(xmStore)
+                storePassword findProperty('XM_STORE_PASSWORD')
+                keyAlias findProperty('XM_KEY_ALIAS')
+                keyPassword findProperty('XM_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        debug {}
+        release {
+            minifyEnabled false
+            if (xmStore) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

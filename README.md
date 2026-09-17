@@ -1,58 +1,80 @@
-XM Arcade — a live Nostr client
+# XM Arcade — a live Nostr client
+
 Games, shorts, music and encrypted chats — owned by nobody, signed by you.
-XM Arcade is a real, working Nostr client wearing the UI from the hand-drawn
+
+XM Arcade is a **real, working Nostr client** wearing the UI from the hand-drawn
 prototype (same dropdown nav, shorts feed, Mini Apps grid, Concord chats, wallet,
 music, settings, light/dark themes, workbench + screen map). The prototype's CSS
 design system is reused verbatim (`css/app.css`); everything underneath is live.
+
 ![XM Arcade workbench + live Shorts playback](docs/screenshot.png)
+
 No build step to run it. No CDN at runtime. Just static files + relays.
-Get the app
-Android: download `XM-Arcade-v1.0.0.apk` from
-Releases and install it (allow "unknown apps" once).
-Requires Android 7+ (`com.xmarcade.app`).
-Web: download `XM-Arcade-standalone.html` from
-Releases — the whole client in one file. Double-click it,
-or serve this folder: `python3 -m http.server 8091` → http://localhost:8091/
+
+## Get the app
+
+- **Android:** download `XM-Arcade-v1.0.0.apk` from
+  [Releases](../../releases) and install it (allow "unknown apps" once).
+  Requires Android 7+ (`com.xmarcade.app`).
+- **Web:** download `XM-Arcade-standalone.html` from
+  [Releases](../../releases) — the whole client in one file. Double-click it,
+  or serve this folder: `python3 -m http.server 8091` → http://localhost:8091/
+
 On a phone-width viewport the workbench hides and the app goes full-bleed.
 On desktop you get the workbench: theme, screen map (`M`), wireframe (`W`),
 guides (`G`), relay health, nav trace. `Esc` goes back.
-What's inside
-Pane	What it really does
-Profile	Kind-0 metadata, kind-1/6 notes feed, follow/unfollow (kind-3), post composer with Blossom attachments, like/repost/reply, sats zap + XMR snap
-Shorts	NIP-71 kinds 21/22 global · tags · follows feeds, real video playback, tag follow, zap + snap, Studio upload (Blossom + kind-22)
-Mini Apps	webxdc arcade: 2 built-in playable games, `.xdc`/`.webxdc`/`.zip` uploads (extracted + executed in a `sandbox="allow-scripts"` iframe with a webxdc.js shim), Nostr `#webxdc` discovery, Feed to Concord channel (Blossom upload + channel Play card)
-Music	Relay audio discovery (notes + kind-1063 carrying audio), search, hashtag filters, queue, sticky player, per-track zaps + XMR snaps, Studio audio publish
-Chats	Concord groups: live NIP-29 groups (kinds 39000 + kind-9, live tail subscription). Public channels are signed plaintext; 🔒 channels add a shared Concord key (NIP-44) created on-device, importable/exportable, shareable to members as NIP-59 gift wraps
-Wallet	sats: real NWC (NIP-47) — balance, invoices, payments, Lightning-address send, NIP-57 zaps. XMR: real `monero-wallet-rpc` adapter — version/address/balance/transfer, one-tap Snaps from any content. Neither half ever asks for or stores seeds
-Settings	Key backup (npub/nsec), theme, starting pane, relay editor with live health, group-relay editor, Blossom servers, followed tags
-Signing (Amber-compatible): device nsec, NIP-07 browser extension
-(`window.nostr`), or NIP-46 remote signer — paste a `bunker://` URI exported
+
+## What's inside
+
+| Pane | What it really does |
+|---|---|
+| **Profile** | Kind-0 metadata, kind-1/6 notes feed, follow/unfollow (kind-3), post composer with Blossom attachments, like/repost/reply, sats zap + XMR snap |
+| **Shorts** | NIP-71 kinds 21/22 global · tags · follows feeds, real video playback, tag follow, zap + snap, Studio upload (Blossom + kind-22) |
+| **Mini Apps** | webxdc arcade: 2 built-in playable games, `.xdc`/`.webxdc`/`.zip` uploads (extracted + executed in a `sandbox="allow-scripts"` iframe with a webxdc.js shim), Nostr `#webxdc` discovery, **Feed to Concord channel** (Blossom upload + channel Play card) |
+| **Music** | Relay audio discovery (notes + kind-1063 carrying audio), search, hashtag filters, queue, sticky player, per-track zaps + XMR snaps, Studio audio publish |
+| **Chats** | **Concord groups**: live NIP-29 groups (kinds 39000 + kind-9, live tail subscription). Public channels are signed plaintext; 🔒 channels add a shared **Concord key** (NIP-44) created on-device, importable/exportable, shareable to members as NIP-59 gift wraps |
+| **Wallet** | **sats**: real NWC (NIP-47) — balance, invoices, payments, Lightning-address send, NIP-57 zaps. **XMR**: real `monero-wallet-rpc` adapter — version/address/balance/transfer, one-tap Snaps from any content. Neither half ever asks for or stores seeds |
+| **Settings** | Key backup (npub/nsec), theme, starting pane, relay editor with live health, group-relay editor, Blossom servers, followed tags |
+
+**Signing (Amber-compatible):** device nsec, NIP-07 browser extension
+(`window.nostr`), or **NIP-46 remote signer** — paste a `bunker://` URI exported
 from Amber, or generate a `nostrconnect://` pairing string and approve it in
 Amber. Keys never leave the signer.
-Offline honesty: live content carries a `live` badge; when relays are
+
+**Offline honesty:** live content carries a `live` badge; when relays are
 unreachable the app falls back to clearly-labeled `demo` placeholders that never
 touch the network.
-Build from source
+
+## Build from source
+
 ```sh
 git clone <your-fork> xm-arcade && cd xm-arcade
 ```
-Single-file web app (needs `python3`; esbuild is vendored for Linux x64,
+
+**Single-file web app** (needs `python3`; esbuild is vendored for Linux x64,
 otherwise `esbuild`/`npx` on PATH is used):
+
 ```sh
 python3 tools/build-web.py          # -> release/XM-Arcade-standalone.html
 ```
-Browser QA (needs `node` + Playwright Chromium — boots the app, creates an
+
+**Browser QA** (needs `node` + Playwright Chromium — boots the app, creates an
 account against live relays, mounts an embedded game, asserts zero errors):
+
 ```sh
 npm i playwright && npx playwright install chromium
 node tools/qa/standalone.js --shot docs/screenshot.png
 ```
-Android APK (needs JDK 17+, Android SDK with platform-34 + build-tools 34,
+
+**Android APK** (needs JDK 17+, Android SDK with platform-34 + build-tools 34,
 Gradle 8.7+; `ANDROID_HOME`/`GRADLE_HOME` honored):
+
 ```sh
 ./tools/build-apk.sh debug            # -> release/XM-Arcade-debug.apk
 ```
-Signed release APK — keys via environment (never commit them):
+
+**Signed release APK** — keys via environment (never commit them):
+
 ```sh
 export ORG_GRADLE_PROJECT_XM_STORE_FILE=/path/to/xm-arcade-release.keystore
 export ORG_GRADLE_PROJECT_XM_STORE_PASSWORD='...'
@@ -60,16 +82,27 @@ export ORG_GRADLE_PROJECT_XM_KEY_ALIAS=xmarcade
 export ORG_GRADLE_PROJECT_XM_KEY_PASSWORD='...'
 ./tools/build-apk.sh release          # -> release/XM-Arcade-vX.Y.Z.apk
 ```
-Back up your keystore + passwords (password manager and offline copy). If you
+
+Back up your keystore + passwords (password manager *and* offline copy). If you
 lose them you can never publish an update — Android requires the same key.
-CI / cutting a release: pushes build the web file + debug APK automatically
-(see `.github/workflows/build.yml`). To ship:
-Bump `VERSION`, add a `CHANGELOG.md` entry.
-Set repo secrets `XM_KEYSTORE_BASE64` (base64 of the keystore),
-`XM_STORE_PASSWORD`, `XM_KEY_ALIAS`, `XM_KEY_PASSWORD`.
-`git tag v1.0.0 && git push origin v1.0.0` — CI builds, signs, and publishes
-the GitHub Release with the APK + standalone HTML.
-Project layout
+
+**CI / cutting a release:** pushes build the web file + debug APK automatically
+(see [`.github/workflows/build.yml`](.github/workflows/build.yml)). To ship:
+
+1. Bump `VERSION`, add a `CHANGELOG.md` entry.
+2. Set repo secrets `XM_KEYSTORE_BASE64` (base64 of the keystore),
+   `XM_STORE_PASSWORD`, `XM_KEY_ALIAS`, `XM_KEY_PASSWORD`.
+3. `git tag v1.0.0 && git push origin v1.0.0` — CI builds, signs, and publishes
+   the GitHub Release with the APK + standalone HTML.
+
+No terminal? Publish entirely in the browser: upload the project files with
+*Add file → Upload files* (skip the `release/` folder — its two files get
+attached to the Release instead), then *Releases → Draft a new release*,
+attach `XM-Arcade-vX.Y.Z.apk` + `XM-Arcade-standalone.html`, and publish.
+The automated signing step quietly skips itself when no signing secrets exist.
+
+## Project layout
+
 ```
 index.html            workbench + phone shell, module entry
 VERSION               single source of truth for the marketing version
@@ -97,24 +130,32 @@ android/              native shell: com.xmarcade.app, min SDK 24, target 34
 docs/screenshot.png   QA-captured workbench shot used above
 release/              generated outputs (git-ignored): standalone HTML + APKs
 ```
-Wallets, honestly
-Sats (hot): connect any NWC wallet (Alby Hub, Mutiny+, …) with a small
-budget. XM Arcade only relays NWC requests; funds live in your wallet.
-XMR (hot): point the app at your own `monero-wallet-rpc`, e.g.
-`monero-wallet-rpc --rpc-bind-port 18082 --disable-rpc-login` on a trusted
-machine (restricted RPC + TLS recommended). The app never sees your 25 words.
-Both halves are remote controls with disconnect buttons, for play money
-and zaps — not life savings. See the in-app Hot wallet notice.
-NIPs spoken
+
+## Wallets, honestly
+
+- **Sats (hot):** connect any NWC wallet (Alby Hub, Mutiny+, …) with a small
+  budget. XM Arcade only relays NWC requests; funds live in your wallet.
+- **XMR (hot):** point the app at your own `monero-wallet-rpc`, e.g.
+  `monero-wallet-rpc --rpc-bind-port 18082 --disable-rpc-login` on a trusted
+  machine (restricted RPC + TLS recommended). The app never sees your 25 words.
+- Both halves are **remote controls with disconnect buttons**, for play money
+  and zaps — not life savings. See the in-app Hot wallet notice.
+
+## NIPs spoken
+
 01 · 04 (retired, not used) · 07 · 09 (NIP-44 chat encryption) · 10 · 19 · 29 ·
 44 · 46 · 47 · 57 · 59 · 71 · 96/Blossom (BUD-01/02 uploads + kind-24242 auth).
-Verified (v1.0.0)
+
+## Verified (v1.0.0)
+
 `tools/qa/standalone.js` boots the single-file build headless: onboarding
-renders, a fresh account is created against live relays (3/3) with a real
-NIP-71 short playing, both embedded games mount error-free — zero page
-errors. Earlier live-network checks exercised all 7 panes, real NIP-29 groups
+renders, a fresh account is created against **live relays (3/3)** with a real
+NIP-71 short playing, both embedded games mount error-free — **zero page
+errors**. Earlier live-network checks exercised all 7 panes, real NIP-29 groups
 with kind-9 messages, real audio tracks, and a signed kind-1 publish read back
 from 3/3 relays.
-License
-MIT — see LICENSE. Vendored `js/vendor/nostr-tools` stays
+
+## License
+
+MIT — see [LICENSE](LICENSE). Vendored `js/vendor/nostr-tools` stays
 MIT © Paul Miller.
