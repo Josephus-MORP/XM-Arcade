@@ -4,6 +4,17 @@ All notable changes to this project. Versions follow [SemVer](https://semver.org
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-09-17
+
+- Shorts feed fixed: Global is unfiltered NIP-71 again (kinds 21/22),
+  For-you shows people you follow, Tags honors followed tags; demo
+  placeholders only when relays truly return nothing.
+- Fresh installs start with 10 followed tags (#music #funny #cute #family
+  #action #adventure #rock #country #acoustic #nature); existing installs
+  keep their tags; tap-to-follow unchanged.
+- Studio short form adds a description line, space-separated hashtags, and a
+  collaborator line (paste npub or @-pick from follows, tagged as p tags).
+
 ## [1.0.1] — 2026-09-17
 
 - Full native Android rebuild: Kotlin + Jetpack Compose (versionCode 3),

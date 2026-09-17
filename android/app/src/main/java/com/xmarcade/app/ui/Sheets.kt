@@ -1104,7 +1104,7 @@ private fun AboutSheet() {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
       XLogo(64.dp)
       Spacer(Modifier.height(10.dp))
-      Text("XM Arcade 1.0.1", style = MaterialTheme.typography.titleLarge)
+      Text("XM Arcade 1.0.2", style = MaterialTheme.typography.titleLarge)
       Text("native Kotlin · Jetpack Compose", fontSize = 13.sp, color = LocalXM.current.text2)
     }
     Spacer(Modifier.height(12.dp))

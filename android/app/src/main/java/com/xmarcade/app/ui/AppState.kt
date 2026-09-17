@@ -32,9 +32,12 @@ object S {
   var xapAmt by mutableStateOf(0.01)
   var accentHue by mutableStateOf(187)
 
+  /** Fresh-install followed tags; stored installs always keep their own list. */
+  val defaultTags = listOf("music", "funny", "cute", "family", "action", "adventure", "rock", "country", "acoustic", "nature")
+
   fun init() {
     val o = Store.getObj("xm.ui.v1") ?: run {
-      followTags.addAll(listOf("webxdc")); return
+      followTags.addAll(defaultTags); return
     }
     theme = o.optString("theme", "dark")
     section = o.optString("section", "shorts")

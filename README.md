@@ -15,7 +15,7 @@ No build step to run it. No CDN at runtime. Just static files + relays.
 
 ## Get the app
 
-- **Android:** download `XM-Arcade-v1.0.1.apk` from
+- **Android:** download `XM-Arcade-v1.0.2.apk` from
   [Releases](../../releases) and install it (allow "unknown apps" once).
   Requires Android 7+ (`com.xmarcade.app`).
 - **Web:** download `XM-Arcade-standalone.html` from
@@ -93,7 +93,7 @@ lose them you can never publish an update — Android requires the same key.
 1. Bump `VERSION`, add a `CHANGELOG.md` entry.
 2. Set repo secrets `XM_KEYSTORE_BASE64` (base64 of the keystore),
    `XM_STORE_PASSWORD`, `XM_KEY_ALIAS`, `XM_KEY_PASSWORD`.
-3. `git tag v1.0.1 && git push origin v1.0.1` — CI builds, signs, and publishes
+3. `git tag v1.0.2 && git push origin v1.0.2` — CI builds, signs, and publishes
    the GitHub Release with the APK + standalone HTML.
 
 No terminal? Publish entirely in the browser: upload the project files with
@@ -150,7 +150,7 @@ release/              generated outputs (git-ignored): standalone HTML + APKs
 Group chats speak the Concord protocol (Armada family — see
 [concord-protocol/concord](https://github.com/concord-protocol/concord)), not NIP-29.
 
-## Verified (v1.0.1)
+## Verified (v1.0.2)
 
 `tools/qa/standalone.js` boots the single-file build headless: onboarding
 renders, a fresh account is created against **live relays (3/3)** with a real

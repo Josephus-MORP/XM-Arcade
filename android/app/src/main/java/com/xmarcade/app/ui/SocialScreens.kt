@@ -43,7 +43,9 @@ import com.xmarcade.app.core.ChanDef
 import com.xmarcade.app.core.ChatMsg
 import com.xmarcade.app.core.Group
 import com.xmarcade.app.core.MiniApp
+import com.xmarcade.app.core.Nip19
 import com.xmarcade.app.core.NostrEvent
+import com.xmarcade.app.core.Profile
 import com.xmarcade.app.core.Repo
 import com.xmarcade.app.core.Signer
 import com.xmarcade.app.core.Webxdc
@@ -492,12 +494,46 @@ fun StudioScreen(kindArg: String? = null) {
   var fileBytes by remember(kind) { mutableStateOf<ByteArray?>(null) }
   var title by remember(kind) { mutableStateOf("") }
   var tags by remember(kind) { mutableStateOf("") }
+  var desc by remember(kind) { mutableStateOf("") }
+  var collabInput by remember(kind) { mutableStateOf("") }
+  var collabs by remember(kind) { mutableStateOf(listOf<Pair<String, String>>()) }
+  var followOpts by remember { mutableStateOf(listOf<Profile>()) }
   var busy by remember { mutableStateOf(false) }
   var resultShort by remember { mutableStateOf<com.xmarcade.app.core.ShortV?>(null) }
   var resultTrack by remember { mutableStateOf<com.xmarcade.app.core.Track?>(null) }
   var resultApp by remember { mutableStateOf<MiniApp?>(null) }
 
-  fun tagNames(): List<String> = tags.split(",").map { it.trim().lowercase().removePrefix("#") }.filter { it.isNotEmpty() }
+  LaunchedEffect(kind) {
+    if (kind != "short" || !Signer.isSignedIn()) return@LaunchedEffect
+    scope.launch(Dispatchers.IO) {
+      try {
+        val f = (Repo.fetchContacts() + S.followUsers.toList()).distinct()
+          .filter { it.matches(Regex("^[0-9a-f]{64}$")) }.take(200)
+        if (f.isNotEmpty()) Repo.fetchProfiles(f)
+        val opts = f.map { Repo.cachedProfile(it) }
+        withContext(Dispatchers.Main) { followOpts = opts }
+      } catch (_: Exception) {}
+    }
+  }
+
+  fun tagNames(): List<String> = tags.split(Regex("[,\\s]+")).map { it.trim().lowercase().removePrefix("#") }.filter { it.isNotEmpty() }
+
+  fun addPk(pk: String, label: String) {
+    if (!Regex("^[0-9a-f]{64}$").matches(pk)) return
+    if (collabs.none { it.first == pk }) collabs = collabs + (pk to label.ifEmpty { pk.take(8) + "…" })
+  }
+
+  fun addCollabFromInput() {
+    val t = collabInput.trim()
+    if (t.isEmpty()) return
+    val d = try { Nip19.decode(t) } catch (_: Exception) { null }
+    val pk = if (d != null && (d.type == "npub" || d.type == "nprofile")) d.dataHex else ""
+    if (pk.isNotEmpty() && Regex("^[0-9a-f]{64}$").matches(pk)) {
+      val known = followOpts.firstOrNull { it.pubkey == pk }?.let { displayName(it) } ?: ""
+      addPk(pk, known.ifEmpty { t.take(12) + "…" })
+      collabInput = ""
+    } else Nav.toast("Paste an npub or pick an @name below")
+  }
 
   fun pick() {
     val mime = when (kind) { "game" -> "application/zip"; "track" -> "audio/*"; else -> "video/*" }
@@ -536,8 +572,9 @@ fun StudioScreen(kindArg: String? = null) {
           else -> {
             val mime = Platform.mimeFor(fileName)
             val up = Repo.blossomUpload(fb, fileName, mime)
-            val tn = (listOf("webxdc") + tagNames()).distinct()
-            val (ev, res) = Repo.publishShort(up.url, title.ifEmpty { fileName }, tn, "", mime, up.sha256, 0.0)
+            val tn = tagNames().distinct()
+            val (ev, res) = Repo.publishShort(up.url, title.ifEmpty { fileName }, tn, "", mime, up.sha256, 0.0,
+              desc.trim(), collabs.map { it.first })
             val sh = com.xmarcade.app.core.ShortV(ev.id, ev.pubkey, ev.createdAt, up.url, "", mime, 0.0, tn, title.ifEmpty { fileName })
             withContext(Dispatchers.Main) {
               busy = false; resultShort = sh
@@ -570,8 +607,69 @@ fun StudioScreen(kindArg: String? = null) {
       if (kind != "game") {
         XMField(title, { title = it }, "Title", maxChars = 120)
         Spacer(Modifier.height(10.dp))
-        XMField(tags, { tags = it }, "tags, comma, separated", maxChars = 200)
-        Spacer(Modifier.height(12.dp))
+        if (kind == "short") {
+          XMField(desc, { desc = it }, "Description", maxChars = 500, singleLine = false, minLines = 2)
+          Spacer(Modifier.height(10.dp))
+        }
+        XMField(tags, { tags = it }, if (kind == "short") "hashtags space separated" else "tags, comma, separated", maxChars = 200)
+        Spacer(Modifier.height(10.dp))
+        if (kind == "short") {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {
+              XMField(collabInput, { collabInput = it }, "@name or paste npub…", maxChars = 120)
+            }
+            Spacer(Modifier.width(8.dp))
+            XMButton("Add", { addCollabFromInput() }, small = true)
+          }
+          val tok = collabInput.split(Regex("\\s+")).lastOrNull()?.trim() ?: ""
+          if (tok.startsWith("@") && tok.length >= 2) {
+            val q = tok.drop(1).lowercase()
+            val matches = followOpts.filter { p ->
+              val n = p.displayName.ifEmpty { p.name }
+              n.isNotEmpty() && n.lowercase().contains(q)
+            }.take(5)
+            if (matches.isNotEmpty()) {
+              Spacer(Modifier.height(6.dp))
+              Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surface)) {
+                matches.forEach { p ->
+                  Row(Modifier.fillMaxWidth().clickable {
+                    addPk(p.pubkey, displayName(p))
+                    collabInput = collabInput.removeSuffix(tok).trimEnd()
+                  }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Avatar(displayName(p), 30.dp, p.picture)
+                    Spacer(Modifier.width(10.dp))
+                    Text(displayName(p), fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                      maxLines = 1, overflow = TextOverflow.Ellipsis)
+                  }
+                }
+              }
+            }
+          }
+          if (collabs.isNotEmpty()) {
+            Spacer(Modifier.height(6.dp))
+            Row {
+              collabs.forEach { (pk, label) ->
+                Row(Modifier.clip(RoundedCornerShape(99.dp))
+                  .background(LocalXM.current.surface2)
+                  .padding(horizontal = 10.dp, vertical = 6.dp),
+                  verticalAlignment = Alignment.CenterVertically) {
+                  Text(label, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold,
+                    color = LocalXM.current.text2)
+                  Spacer(Modifier.width(6.dp))
+                  Text("✕", fontSize = 12.sp, color = LocalXM.current.text3,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable {
+                      collabs = collabs.filter { it.first != pk }
+                    })
+                }
+                Spacer(Modifier.width(6.dp))
+              }
+            }
+          }
+          Spacer(Modifier.height(12.dp))
+        } else {
+          Spacer(Modifier.height(2.dp))
+        }
       } else {
         XMField(title, { title = it }, "Game title (optional)", maxChars = 120)
         Spacer(Modifier.height(12.dp))

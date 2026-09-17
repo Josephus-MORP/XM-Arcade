@@ -196,10 +196,11 @@ object Repo {
       RelayPool.queryOne(f, RelayPool.relays, 8000).map { parseShort(it) }.filter { it.url.isNotEmpty() }
     }
 
-  suspend fun publishShort(url: String, title: String, tags: List<String>, thumb: String = "", mime: String = "", sha256: String = "", duration: Double = 0.0) =
+  suspend fun publishShort(url: String, title: String, tags: List<String>, thumb: String = "", mime: String = "", sha256: String = "", duration: Double = 0.0, desc: String = "", collabs: List<String> = emptyList()) =
     withContext(Dispatchers.IO) {
       val t = mutableListOf(listOf("url", url), listOf("title", title.ifEmpty { "XM Arcade short" })) +
-        tags.map { listOf("t", it.removePrefix("#").lowercase()) }
+        tags.map { listOf("t", it.removePrefix("#").lowercase()) } +
+        collabs.filter { it.matches(Regex("^[0-9a-f]{64}$")) }.distinct().map { listOf("p", it) }
       val all = t.toMutableList()
       if (thumb.isNotEmpty() || mime.isNotEmpty() || sha256.isNotEmpty()) {
         val im = mutableListOf("imeta", "url $url")
@@ -209,7 +210,7 @@ object Repo {
         if (duration > 0) im.add("duration $duration")
         all.add(im)
       }
-      val e = Signer.signEvent(22, title, all)
+      val e = Signer.signEvent(22, desc.ifEmpty { title }, all)
       e to RelayPool.publish(e, RelayPool.relays)
     }
 

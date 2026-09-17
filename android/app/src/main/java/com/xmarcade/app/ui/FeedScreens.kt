@@ -213,13 +213,15 @@ fun ShortsScreen() {
   LaunchedEffect(tab, tag) {
     loading = true
     scope.launch(Dispatchers.IO) {
+      // v1.0.0 contract: global = unfiltered NIP-71; for-you = people you
+      // follow (global when following nobody); tags = followed/picked tag.
+      val follows = (S.followUsers.toList() + Repo.follows).distinct()
       val tags = when (tab) {
-        "for" -> listOf("webxdc")
-        "tags" -> if (tag == "All") S.followTags.toList().ifEmpty { listOf("webxdc") } else listOf(tag)
-        else -> S.followTags.toList().ifEmpty { listOf("webxdc") }
+        "tags" -> if (tag == "All") S.followTags.toList() else listOf(tag)
+        else -> emptyList()
       }
-      val authors = if (tab == "for") S.followUsers.toList() else emptyList()
-      val res = try { Repo.fetchShorts(tags, if (authors.size > 100) authors.take(100) else authors, 40) }
+      val authors = if (tab == "for") follows.take(100) else emptyList()
+      val res = try { Repo.fetchShorts(tags, authors, 40) }
       catch (_: Exception) { emptyList() }
       withContext(Dispatchers.Main) {
         list = if (res.isEmpty()) {
@@ -291,7 +293,7 @@ fun ShortsScreen() {
       }
       Box(Modifier.size(38.dp).clip(RoundedCornerShape(99.dp)).background(Color.White.copy(alpha = 0.16f))
         .clickable { Nav.go("studio", "short") }, contentAlignment = Alignment.Center) {
-        AppIcon("plus", 20.dp, tint = Color.White)
+        AppIcon("upload", 20.dp, tint = Color.White)
       }
     }
   }

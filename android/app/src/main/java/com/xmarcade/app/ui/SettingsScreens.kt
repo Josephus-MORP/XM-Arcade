@@ -81,7 +81,7 @@ fun SettingsScreen() {
       RowItem("hash", null, "Followed tags", S.followTags.joinToString(", ").ifEmpty { "none" },
         onClick = { Nav.openSheet(Sheet("tags")) })
       GroupLabel("About")
-      RowItem("info", null, "About XM Arcade", "Version 1.0.1 · native Kotlin",
+      RowItem("info", null, "About XM Arcade", "Version 1.0.2 · native Kotlin",
         onClick = { Nav.openSheet(Sheet("about")) })
       Spacer(Modifier.height(14.dp))
       Text("Shorts · mini apps · music · Concord · zaps · xaps",
