@@ -258,6 +258,25 @@ fun Pill(text: String, on: Boolean, onClick: () -> Unit) {
   }
 }
 
+/** Hashtag chip: green dot when followed, tap toggles follow. */
+@Composable
+fun FollowTagChip(tag: String, dark: Boolean = false, onToggle: () -> Unit = { Acts.toggleTag(tag) }) {
+  val followed = S.followTags.contains(tag.lowercase())
+  val xm = LocalXM.current
+  Row(Modifier.clip(RoundedCornerShape(99.dp))
+    .background(if (dark) Color.White.copy(alpha = 0.16f) else xm.surface2)
+    .clickable(onClick = onToggle)
+    .padding(horizontal = 10.dp, vertical = 5.dp),
+    verticalAlignment = Alignment.CenterVertically) {
+    if (followed) {
+      Box(Modifier.size(7.dp).clip(CircleShape).background(xm.ok))
+      Spacer(Modifier.width(6.dp))
+    }
+    Text("#$tag", fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+      color = if (dark) Color.White else xm.text2)
+  }
+}
+
 @Composable
 fun StaticChip(text: String, icon: String? = null, green: Boolean = false) {
   val xm = LocalXM.current
@@ -338,7 +357,11 @@ private val TAG_RE = Regex("#([a-zA-Z0-9_]+)")
 @Composable
 fun RichText(text: String, color: Color, onTag: (String) -> Unit = {}, onUrl: (String) -> Unit = {}) {
   val accent = MaterialTheme.colorScheme.secondary
-  val ann = remember(text) {
+  val ok = LocalXM.current.ok
+  // Rebuild spans whenever the followed-tag set changes so followed tags show green.
+  val followedKey = S.followTags.joinToString(",")
+  val ann = remember(text, followedKey) {
+    val followed = followedKey.split(",").filter { it.isNotEmpty() }.toSet()
     buildAnnotatedString {
       var i = 0
       val marks = mutableListOf<Triple<Int, Int, String>>()
@@ -349,7 +372,9 @@ fun RichText(text: String, color: Color, onTag: (String) -> Unit = {}, onUrl: (S
       marks.sortBy { it.first }
       append(text)
       marks.forEach { (s, e, k) ->
-        addStyle(SpanStyle(color = accent, textDecoration = if (k.startsWith("url")) TextDecoration.Underline else null), s, e)
+        val isTag = k.startsWith("tag:")
+        val c = if (isTag && followed.contains(k.substringAfter(":").lowercase())) ok else accent
+        addStyle(SpanStyle(color = c, textDecoration = if (!isTag) TextDecoration.Underline else null), s, e)
         addStringAnnotation(k.substringBefore(":"), k.substringAfter(":"), s, e)
       }
     }

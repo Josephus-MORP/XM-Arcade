@@ -24,7 +24,7 @@ if [ ! -x "$JDK/bin/java" ]; then
   rm -rf "$JDK" && mkdir -p "$JDK"
   tar xzf /var/tmp/jdk17.tar.gz -C "$JDK" --strip-components=1
 fi
-"$JDK/bin/java" -version 2>&1 | head -1
+"$JDK/bin/java" -version 2>&1 | head -1 || true
 
 echo "==> Android SDK"
 if [ ! -d "$SDK/cmdline-tools/latest" ]; then
@@ -35,7 +35,9 @@ if [ ! -d "$SDK/cmdline-tools/latest" ]; then
   mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
 fi
 if [ ! -d "$SDK/platforms/android-34" ]; then
+  set +o pipefail # 'yes' always SIGPIPEs; keep sdkmanager's own exit code
   yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" "platform-tools" "platforms;android-34" "build-tools;34.0.0" >/dev/null
+  set -o pipefail
   yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" --licenses >/dev/null || true
 fi
 echo "sdk.dir=$SDK" > "$ROOT/android/local.properties"

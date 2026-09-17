@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -192,6 +193,8 @@ private fun TagsSheet() {
           if (S.tagFilter == t) { S.tagFilter = "All"; S.save() }
           Nav.toast("Unfollowed #$t")
         }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(8.dp).clip(CircleShape).background(LocalXM.current.ok))
+        Spacer(Modifier.width(10.dp))
         Text("#$t", fontWeight = FontWeight.SemiBold, fontSize = 14.5.sp, modifier = Modifier.weight(1f))
         AppIcon("close", 16.dp, tint = LocalXM.current.text3)
       }

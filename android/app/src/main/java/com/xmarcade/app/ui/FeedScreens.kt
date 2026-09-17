@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -156,9 +157,6 @@ fun ProfileScreen(pkArg: String? = null) {
                 Spacer(Modifier.width(8.dp))
                 XMButton("Edit profile", { Nav.openSheet(Sheet("editProfile")) }, Modifier.weight(1f),
                   kind = BtnKind.Line, small = true)
-                Spacer(Modifier.width(8.dp))
-                XMButton("My keys", { Nav.openSheet(Sheet("keys")) }, Modifier.weight(1f),
-                  kind = BtnKind.Line, small = true)
               }
             }
             if (p.about.isNotEmpty()) { Spacer(Modifier.height(10.dp)); Text(p.about, fontSize = 14.sp) }
@@ -261,8 +259,7 @@ fun ShortsScreen() {
         val sh = list.getOrNull(idx) ?: return@VerticalPager
         ShortPage(sh, active = pagerState.currentPage == idx,
           replying = replying == sh.id, onReplyToggle = { replying = if (replying == sh.id) null else sh.id },
-          onReplied = { replying = null },
-          onTagGo = { t -> S.tagFilter = t; S.shortTab = "tags"; S.save(); tab = "tags" })
+          onReplied = { replying = null })
       }
     }
     Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 10.dp),
@@ -302,7 +299,7 @@ fun ShortsScreen() {
 
 @Composable
 private fun ShortPage(sh: ShortV, active: Boolean, replying: Boolean, onReplyToggle: () -> Unit,
-  onReplied: () -> Unit, onTagGo: (String) -> Unit) {
+  onReplied: () -> Unit) {
   var field by remember(sh.id) { mutableStateOf("") }
   var authorName by remember(sh.id) { mutableStateOf(if (sh.demo) sh.author else "") }
   var authorPic by remember(sh.id) { mutableStateOf("") }
@@ -335,13 +332,10 @@ private fun ShortPage(sh: ShortV, active: Boolean, replying: Boolean, onReplyTog
         color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
       if (sh.tags.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
-        Row {
-          sh.tags.take(3).forEach { t ->
-            Box(Modifier.padding(end = 6.dp).clip(RoundedCornerShape(99.dp))
-              .background(Color.White.copy(alpha = 0.16f)).clickable { onTagGo(t) }
-              .padding(horizontal = 10.dp, vertical = 5.dp)) {
-              Text("#$t", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            }
+        LazyRow {
+          items(sh.tags) { t ->
+            FollowTagChip(t, dark = true)
+            Spacer(Modifier.width(6.dp))
           }
         }
       }
@@ -592,7 +586,20 @@ fun MusicScreen() {
       Spacer(Modifier.height(8.dp))
       Row {
         tags.take(6).forEach { t ->
-          Pill(if (t == "All") "All" else "#$t", tag == t) { S.musicTag = t; S.save() }
+          val on = tag == t
+          val followed = t != "All" && S.followTags.contains(t.lowercase())
+          Row(Modifier.clip(RoundedCornerShape(99.dp))
+            .background(if (on) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else LocalXM.current.surface2)
+            .clickable { S.musicTag = t; S.save() }
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            if (followed) {
+              Box(Modifier.size(7.dp).clip(RoundedCornerShape(99.dp)).background(LocalXM.current.ok))
+              Spacer(Modifier.width(6.dp))
+            }
+            Text(if (t == "All") "All" else "#$t", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+              color = if (on) MaterialTheme.colorScheme.primary else LocalXM.current.text2)
+          }
           Spacer(Modifier.width(8.dp))
         }
       }
@@ -623,6 +630,15 @@ fun MusicScreen() {
               maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(artist(t), fontSize = 12.5.sp, color = LocalXM.current.text2,
               maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (t.tags.isNotEmpty()) {
+              Spacer(Modifier.height(6.dp))
+              LazyRow {
+                items(t.tags) { tag ->
+                  FollowTagChip(tag)
+                  Spacer(Modifier.width(6.dp))
+                }
+              }
+            }
           }
           BareIconBtn("list", "Queue", { Player.enqueue(t); Nav.toast("Queued") }, size = 38.dp)
           BareIconBtn("zap", "Zap", { Acts.doZapOpen(t.id, t.pubkey) }, size = 38.dp)
