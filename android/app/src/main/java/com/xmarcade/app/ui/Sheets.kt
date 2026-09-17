@@ -79,7 +79,6 @@ fun SheetHost(sheet: Sheet) {
       "groupEdit" -> GroupEditSheet(sheet.args["gid"] ?: "")
       "newChannel" -> NewChannelSheet(sheet.args["gid"] ?: "")
       "feedApp" -> FeedAppSheet(sheet.args["appId"] ?: "")
-      "upload" -> UploadSheet()
       "queue" -> QueueSheet()
       "about" -> AboutSheet()
       else -> SheetScaffold("?", "", {}, {})
@@ -1042,41 +1041,6 @@ private fun FeedAppSheet(appId: String) {
 }
 
 @Composable
-private fun UploadSheet() {
-  val scope = rememberCoroutineScope()
-  var name by remember { mutableStateOf("") }
-  var bytes by remember { mutableStateOf<ByteArray?>(null) }
-  var busy by remember { mutableStateOf(false) }
-  SheetScaffold("Upload game", ".zip with index.html at its root · 20 MB cap", {
-    XMButton(if (name.isEmpty()) "Pick .zip" else name, {
-      Platform.pickFile("application/zip") { n, b -> name = n; bytes = b }
-    }, Modifier.fillMaxWidth(), kind = BtnKind.Line, icon = "upload")
-    if (bytes != null) {
-      Spacer(Modifier.height(4.dp))
-      Text("%.1f MB".format((bytes?.size ?: 0) / 1048576.0), fontSize = 12.5.sp, color = LocalXM.current.text2)
-    }
-    Spacer(Modifier.height(12.dp))
-    XMButton("Install", {
-      val b = bytes
-      if (b == null) { Nav.toast("Pick a file first"); return@XMButton }
-      busy = true
-      scope.launch(Dispatchers.IO) {
-        try {
-          Webxdc.addUpload(b, name, name.substringBeforeLast("."), "", emptyList())
-          withContext(Dispatchers.Main) {
-            busy = false
-            Nav.closeSheet()
-            Nav.toast("Game installed")
-          }
-        } catch (e: Exception) {
-          withContext(Dispatchers.Main) { busy = false; Nav.toast("Install failed: ${e.message}") }
-        }
-      }
-    }, Modifier.fillMaxWidth(), enabled = !busy && bytes != null)
-  })
-}
-
-@Composable
 private fun QueueSheet() {
   val queue = Player.queue.collectAsState().value
   val current = Player.current.collectAsState().value
@@ -1104,7 +1068,7 @@ private fun AboutSheet() {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
       XLogo(64.dp)
       Spacer(Modifier.height(10.dp))
-      Text("XM Arcade 1.0.3", style = MaterialTheme.typography.titleLarge)
+      Text("XM Arcade 1.0.4", style = MaterialTheme.typography.titleLarge)
       Text("native Kotlin · Jetpack Compose", fontSize = 13.sp, color = LocalXM.current.text2)
     }
     Spacer(Modifier.height(12.dp))

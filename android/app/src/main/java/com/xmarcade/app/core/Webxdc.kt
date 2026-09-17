@@ -145,7 +145,8 @@ object Webxdc {
       val o = a.optJSONObject(i) ?: return@mapNotNull null
       MiniApp(o.optString("id"), "local", o.optString("title"), o.optString("desc"),
         (0 until (o.optJSONArray("tags")?.length() ?: 0)).map { o.getJSONArray("tags").getString(it) },
-        author = "", fileName = o.optString("fileName"), size = o.optLong("size"))
+        author = "", fileName = o.optString("fileName"), size = o.optLong("size"),
+        authorPk = o.optString("authorPk"), icon = o.optString("icon"))
     }
   }
 
@@ -153,6 +154,7 @@ object Webxdc {
     Store.setArr("xm.webxdc.meta.v1", JSONArray(list.map {
       JSONObject().put("id", it.id).put("title", it.title).put("desc", it.desc)
         .put("tags", JSONArray(it.tags)).put("fileName", it.fileName).put("size", it.size)
+        .put("authorPk", it.authorPk).put("icon", it.icon)
     }))
   }
 
@@ -164,7 +166,7 @@ object Webxdc {
         for (f in Repo.fetchDiscoveredApps(20)) {
           list.add(MiniApp("nostr:" + f.id, "nostr", f.title,
             "Shared on Nostr · " + f.url.take(60), if (f.tags.isEmpty()) listOf("webxdc") else f.tags,
-            url = f.url, author = f.pubkey.take(8) + "…"))
+            url = f.url, author = f.pubkey.take(8) + "…", authorPk = f.pubkey, eventId = f.id))
         }
       } catch (_: Exception) {}
     }
@@ -198,6 +200,7 @@ object Webxdc {
       if (all.any { it.title.lowercase() == title.trim().lowercase() })
         throw IllegalArgumentException("An app with that title already exists.")
       var finalTitle = title.trim()
+      var iconBytes: ByteArray? = null
       if (Regex("\\.(xdc|webxdc|zip)$").containsMatchIn(name)) {
         val files = unzipAll(bytes)
         files["manifest.toml"]?.toString(Charsets.UTF_8)?.let { man ->
@@ -205,18 +208,41 @@ object Webxdc {
         }
         if (!files.containsKey("index.html") && files.keys.none { it.lowercase().endsWith(".html") })
           throw IllegalArgumentException("Archive has no index.html.")
+        fun isIcon(n: String): Boolean {
+          val b = n.substringAfterLast("/").lowercase()
+          return b == "icon.png" || b == "icon.jpg" || b == "icon.jpeg" || b == "icon.webp"
+        }
+        val iconKey = files.keys.firstOrNull { isIcon(it) && !it.contains("/") }
+          ?: files.keys.firstOrNull { isIcon(it) }
+        val ib = if (iconKey != null) files[iconKey] else null
+        if (ib != null && ib.size in 1..524288) iconBytes = ib
       }
       val id = "local-" + uid()
       File(dir(), id).writeBytes(bytes)
+      var iconName = ""
+      if (iconBytes != null) {
+        try { File(dir(), "$id.icon").writeBytes(iconBytes); iconName = "$id.icon" } catch (_: Exception) {}
+      }
       val meta = MiniApp(id, "local", finalTitle, desc.trim(),
-        tags.map { it.removePrefix("#") }.filter { it.isNotEmpty() }, fileName = fileName, size = bytes.size.toLong())
+        tags.map { it.removePrefix("#") }.filter { it.isNotEmpty() }, fileName = fileName, size = bytes.size.toLong(),
+        authorPk = Signer.pubkey ?: "", icon = iconName)
       saveLocalApps(listOf(meta) + localApps())
       meta
     }
 
   fun removeUpload(id: String) {
     try { File(dir(), id).delete() } catch (_: Exception) {}
+    try { File(dir(), "$id.icon").delete() } catch (_: Exception) {}
     saveLocalApps(localApps().filter { it.id != id })
+  }
+
+  /** On-device icon file for a local upload, or null (caller falls back to the letter tile). */
+  fun iconFile(app: MiniApp): File? {
+    if (app.source != "local" || app.icon.isEmpty()) return null
+    return try {
+      val f = File(dir(), app.icon)
+      if (f.exists() && f.length() > 0) f else null
+    } catch (_: Exception) { null }
   }
 
   // ---------- resolve + serve ----------

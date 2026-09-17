@@ -25,6 +25,7 @@ private val PATHS = mapOf(
   "chevR" to "M9.5 5.5 16 12l-6.5 6.5",
   "chevL" to "M14.5 5.5 8 12l6.5 6.5",
   "chevD" to "M6 9.5 12 16l6-6.5",
+  "chevU" to "M6 14.5 12 8l6 6.5",
   "close" to "M6 6l12 12M18 6 6 18",
   "plus" to "M12 5v14M5 12h14",
   "bell" to "M18 8.5a6 6 0 1 0-12 0c0 5.2-2 6.5-2 6.5h16s-2-1.3-2-6.5M10.3 19a2 2 0 0 0 3.4 0",

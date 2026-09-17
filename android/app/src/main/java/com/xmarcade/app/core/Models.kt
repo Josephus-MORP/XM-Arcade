@@ -75,6 +75,7 @@ data class MiniApp(
   val id: String, val source: String, val title: String, val desc: String = "",
   val tags: List<String> = emptyList(), val url: String = "", val author: String = "",
   val file: String = "", val fileName: String = "", val size: Long = 0,
+  val authorPk: String = "", val eventId: String = "", val icon: String = "",
 )
 
 data class ChanDef(val name: String, val topic: String = "")

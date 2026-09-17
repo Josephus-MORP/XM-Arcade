@@ -1,6 +1,12 @@
 package com.xmarcade.app.ui
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -395,7 +401,8 @@ fun MiniAppsScreen() {
   var loading by remember { mutableStateOf(true) }
   var apps by remember { mutableStateOf<List<MiniApp>>(emptyList()) }
   var cat by remember { mutableStateOf("All") }
-  LaunchedEffect(Unit) {
+  // Reload whenever the stack depth changes (e.g. back from Studio after an install).
+  LaunchedEffect(Nav.stack.size) {
     scope.launch(Dispatchers.IO) {
       val res = try { Webxdc.catalog() } catch (_: Exception) { emptyList() }
       withContext(Dispatchers.Main) {
@@ -409,7 +416,13 @@ fun MiniAppsScreen() {
   val list = if (cat == "All") apps else apps.filter { appCat(it) == cat }
   Column(Modifier.fillMaxSize()) {
     TopBar("Mini Apps", displayName(Me.profile), Me.profile.picture, onDd = { Nav.ddOpen = true }, trailing = {
-      BareIconBtn("upload", "Upload", { Nav.openSheet(Sheet("upload")) })
+      Row(Modifier.clip(RoundedCornerShape(99.dp)).background(MaterialTheme.colorScheme.primary)
+        .clickable { Nav.go("studio", "game") }.padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        AppIcon("upload", 16.dp, tint = Color.White)
+        Spacer(Modifier.width(6.dp))
+        Text("Upload", fontSize = 13.5.sp, fontWeight = FontWeight.Bold, color = Color.White)
+      }
     })
     if (loading) {
       Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Loading arcade…", color = LocalXM.current.text2) }
@@ -418,12 +431,12 @@ fun MiniAppsScreen() {
     if (apps.isEmpty()) {
       EmptyState("No mini apps yet", "Upload a .zip game or discover apps from Nostr.") {
         Spacer(Modifier.height(8.dp))
-        XMButton("Upload .zip", { Nav.openSheet(Sheet("upload")) }, small = true)
+        XMButton("Upload .zip", { Nav.go("studio", "game") }, small = true)
       }
       return
     }
-    LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
-      item(span = { GridItemSpan(2) }) {
+    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
+      item {
         Row(Modifier.padding(vertical = 8.dp)) {
           cats.forEach { c ->
             Pill(c, cat == c) { cat = c }
@@ -432,33 +445,129 @@ fun MiniAppsScreen() {
         }
       }
       items(list, key = { it.id }) { app ->
-        Column(Modifier.padding(5.dp).clip(RoundedCornerShape(18.dp))
-          .background(MaterialTheme.colorScheme.surface).clickable { Nav.go("gamerun", app) }.padding(12.dp)) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            AppTile(app, 52.dp)
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-              Text(app.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-              Text("${app.source} · ${app.author.ifEmpty { "anon" }}", fontSize = 12.sp,
-                color = LocalXM.current.text3, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-          }
-          if (app.desc.isNotEmpty()) {
-            Spacer(Modifier.height(6.dp))
-            Text(app.desc, fontSize = 12.5.sp, color = LocalXM.current.text2, maxLines = 2, overflow = TextOverflow.Ellipsis)
-          }
-          Spacer(Modifier.height(8.dp))
-          Row {
-            XMButton("Play", { Nav.go("gamerun", app) }, Modifier.weight(1f), small = true, icon = "play")
-            Spacer(Modifier.width(8.dp))
-            XMButton("Feed", { Nav.openSheet(Sheet("feedApp", mapOf("appId" to app.id))) },
-              Modifier.weight(1f), kind = BtnKind.Line, small = true, icon = "send")
-          }
-        }
+        AppCard(app)
+        Spacer(Modifier.height(10.dp))
       }
-      item(span = { GridItemSpan(2) }) { Spacer(Modifier.height(30.dp)) }
+      item { Spacer(Modifier.height(30.dp)) }
     }
   }
+}
+
+@Composable
+private fun AppCard(app: MiniApp) {
+  var expanded by remember(app.id) { mutableStateOf(false) }
+  var authorName by remember(app.id) { mutableStateOf(app.author) }
+  var authorPic by remember(app.id) { mutableStateOf("") }
+  val hasPk = app.authorPk.matches(Regex("^[0-9a-f]{64}$"))
+  val canReact = app.eventId.isNotEmpty()
+  LaunchedEffect(app.id) {
+    if (hasPk) {
+      try { Repo.fetchProfiles(listOf(app.authorPk)) } catch (_: Exception) {}
+      val p = Repo.cachedProfile(app.authorPk)
+      authorName = displayName(p)
+      authorPic = p.picture
+    }
+  }
+  Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+    .background(MaterialTheme.colorScheme.surface).padding(12.dp)) {
+    Row(verticalAlignment = Alignment.Top) {
+      AppIconBox(app, 72.dp)
+      Spacer(Modifier.width(10.dp))
+      Column(Modifier.weight(1f)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(app.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 2,
+            overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+          Spacer(Modifier.width(8.dp))
+          Box(Modifier.size(44.dp).clip(RoundedCornerShape(99.dp))
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable { Nav.go("gamerun", app) }, contentAlignment = Alignment.Center) {
+            AppIcon("play", 20.dp, tint = Color.White)
+          }
+        }
+        Spacer(Modifier.height(6.dp))
+        if (app.tags.isNotEmpty()) {
+          LazyRow(Modifier.height(30.dp)) {
+            items(app.tags) { t ->
+              FollowTagChip(t)
+              Spacer(Modifier.width(6.dp))
+            }
+          }
+        } else {
+          Text(when (app.source) { "nostr" -> "Nostr share"; "local" -> "Installed file"; else -> "Built-in" },
+            fontSize = 12.sp, color = LocalXM.current.text3)
+        }
+      }
+    }
+    Spacer(Modifier.height(10.dp))
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+      Row(Modifier.clip(RoundedCornerShape(99.dp)).background(LocalXM.current.surface2)
+        .clickable {
+          if (hasPk) Acts.visitProfile(app.authorPk)
+          else Nav.toast(if (app.source == "builtin") "Built-in XM Arcade game" else "Local install — no author key")
+        }.padding(end = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Avatar(authorName.ifEmpty { app.author.ifEmpty { "?" } }, 30.dp, authorPic)
+        Spacer(Modifier.width(6.dp))
+        Text((authorName.ifEmpty { app.author }).ifEmpty { if (app.source == "builtin") "XM Arcade" else "local" },
+          fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = LocalXM.current.text2,
+          maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 90.dp))
+      }
+      Spacer(Modifier.weight(1f))
+      AppChip("send") { Nav.openSheet(Sheet("feedApp", mapOf("appId" to app.id))) }
+      Spacer(Modifier.width(6.dp))
+      AppChip("heart") {
+        if (canReact) Acts.doReactOpen(app.eventId)
+        else Nav.toast("Reactions need the Nostr post — this app is local")
+      }
+      Spacer(Modifier.width(6.dp))
+      AppChip("zap") {
+        if (hasPk) Acts.doZapOpen(if (canReact) app.eventId else "", app.authorPk)
+        else Nav.toast("No author key to zap")
+      }
+      Spacer(Modifier.width(6.dp))
+      Box(Modifier.size(38.dp).clip(RoundedCornerShape(99.dp)).background(LocalXM.current.surface2)
+        .clickable {
+          if (hasPk) Acts.doXapOpen(if (canReact) app.eventId else "", app.authorPk)
+          else Nav.toast("No author key to xap")
+        }, contentAlignment = Alignment.Center) {
+        CoinMark("xmr", 20.dp)
+      }
+      Spacer(Modifier.weight(1f))
+      if (app.desc.isNotEmpty()) {
+        Box(Modifier.size(38.dp).clip(RoundedCornerShape(99.dp)).background(LocalXM.current.surface2)
+          .clickable { expanded = !expanded }, contentAlignment = Alignment.Center) {
+          AppIcon(if (expanded) "chevU" else "chevD", 18.dp, tint = LocalXM.current.text2)
+        }
+      }
+    }
+    if (expanded && app.desc.isNotEmpty()) {
+      Spacer(Modifier.height(8.dp))
+      Text(app.desc, fontSize = 13.5.sp, color = LocalXM.current.text2)
+    }
+  }
+}
+
+@Composable
+private fun AppChip(icon: String, onClick: () -> Unit) {
+  Box(Modifier.size(38.dp).clip(RoundedCornerShape(99.dp)).background(LocalXM.current.surface2)
+    .clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+    AppIcon(icon, 18.dp, tint = LocalXM.current.text2)
+  }
+}
+
+@Composable
+private fun AppIconBox(app: MiniApp, size: androidx.compose.ui.unit.Dp) {
+  var bmp by remember(app.id) { mutableStateOf<Bitmap?>(null) }
+  LaunchedEffect(app.id) {
+    withContext(Dispatchers.IO) {
+      val f = try { Webxdc.iconFile(app) } catch (_: Exception) { null }
+      val b = if (f != null) try { BitmapFactory.decodeFile(f.absolutePath) } catch (_: Exception) { null } else null
+      withContext(Dispatchers.Main) { bmp = b }
+    }
+  }
+  val b = bmp
+  if (b != null) Image(b.asImageBitmap(), app.title,
+    Modifier.size(size).clip(RoundedCornerShape(18.dp)), contentScale = ContentScale.Crop)
+  else AppTile(app, size)
 }
 
 @Composable
