@@ -50,6 +50,24 @@ object Net {
       }
     }
 
+  suspend fun head(url: String, headers: Map<String, String> = emptyMap()): Int =
+    withContext(Dispatchers.IO) {
+      val b = Request.Builder().url(url).head()
+      headers.forEach { (k, v) -> b.header(k, v) }
+      client.newCall(b.build()).execute().use { r -> r.code }
+    }
+
+  suspend fun putJson(url: String, body: JSONObject, headers: Map<String, String> = emptyMap()): JSONObject =
+    withContext(Dispatchers.IO) {
+      val b = Request.Builder().url(url)
+        .put(body.toString().toRequestBody("application/json".toMediaType()))
+      headers.forEach { (k, v) -> b.header(k, v) }
+      client.newCall(b.build()).execute().use { r ->
+        if (!r.isSuccessful) throw RuntimeException("HTTP ${r.code}")
+        try { JSONObject(r.body?.string() ?: "{}") } catch (_: Exception) { JSONObject() }
+      }
+    }
+
   suspend fun putBytes(url: String, bytes: ByteArray, contentType: String, headers: Map<String, String> = emptyMap()): JSONObject =
     withContext(Dispatchers.IO) {
       val b = Request.Builder().url(url)

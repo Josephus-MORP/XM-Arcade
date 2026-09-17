@@ -7,6 +7,10 @@ All notable changes to this project. Versions follow [SemVer](https://semver.org
 ## [1.0.3] — 2026-09-17
 
 - Welcome screen now shows the neon XM app icon instead of the drawn mark.
+- Shorts uploads auto-compress (Amethyst/LightCompressor-style 1080p H.264,
+  skip-if-small) and fan out to every configured Blossom server (nostube-style
+  upload-once + /mirror with direct-PUT fallback), so one server going down
+  never loses a video.
 
 ## [1.0.2] — 2026-09-17
 

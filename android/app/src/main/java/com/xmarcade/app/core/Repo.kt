@@ -1,6 +1,9 @@
 package com.xmarcade.app.core
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -196,18 +199,21 @@ object Repo {
       RelayPool.queryOne(f, RelayPool.relays, 8000).map { parseShort(it) }.filter { it.url.isNotEmpty() }
     }
 
-  suspend fun publishShort(url: String, title: String, tags: List<String>, thumb: String = "", mime: String = "", sha256: String = "", duration: Double = 0.0, desc: String = "", collabs: List<String> = emptyList()) =
+  suspend fun publishShort(url: String, title: String, tags: List<String>, thumb: String = "", mime: String = "", sha256: String = "", duration: Double = 0.0, desc: String = "", collabs: List<String> = emptyList(), dim: String = "", size: Long = 0, fallbacks: List<String> = emptyList()) =
     withContext(Dispatchers.IO) {
       val t = mutableListOf(listOf("url", url), listOf("title", title.ifEmpty { "XM Arcade short" })) +
         tags.map { listOf("t", it.removePrefix("#").lowercase()) } +
         collabs.filter { it.matches(Regex("^[0-9a-f]{64}$")) }.distinct().map { listOf("p", it) }
       val all = t.toMutableList()
-      if (thumb.isNotEmpty() || mime.isNotEmpty() || sha256.isNotEmpty()) {
+      if (thumb.isNotEmpty() || mime.isNotEmpty() || sha256.isNotEmpty() || fallbacks.isNotEmpty() || dim.isNotEmpty() || size > 0) {
         val im = mutableListOf("imeta", "url $url")
         if (mime.isNotEmpty()) im.add("m $mime")
         if (thumb.isNotEmpty()) im.add("image $thumb")
         if (sha256.isNotEmpty()) im.add("x $sha256")
         if (duration > 0) im.add("duration $duration")
+        if (dim.isNotEmpty()) im.add("dim $dim")
+        if (size > 0) im.add("size $size")
+        for (fb in fallbacks.distinct().take(8)) if (fb.isNotEmpty() && fb != url) im.add("fallback $fb")
         all.add(im)
       }
       val e = Signer.signEvent(22, desc.ifEmpty { title }, all)
@@ -416,21 +422,76 @@ object Repo {
 
   data class BlossomUp(val url: String, val sha256: String, val mime: String, val size: Long, val name: String)
 
-  suspend fun blossomUpload(bytes: ByteArray, name: String, mime: String): BlossomUp = withContext(Dispatchers.IO) {
-    val sha = Hex.encode(Sha.sha256(bytes))
+  private suspend fun blossomAuth(server: String, sha: String, name: String): String {
     val auth = Signer.signEvent(24242, "Upload $name",
-      listOf(listOf("t", "upload"), listOf("x", sha), listOf("expiration", (nowSec() + 300).toString())))
-    val authHeader = "Nostr " + B64.encode(Ev.toJsonArray(auth).toByteArray(Charsets.UTF_8))
-    var lastErr: Exception? = null
-    for (base in blossomServers()) {
-      try {
-        val j = Net.putBytes(base.trimEnd('/') + "/upload", bytes, mime.ifEmpty { "application/octet-stream" },
-          mapOf("Authorization" to authHeader))
-        val url = j.optString("url", "").ifEmpty { base.trimEnd('/') + "/$sha" }
-        return@withContext BlossomUp(url, sha, mime, bytes.size.toLong(), name)
-      } catch (e: Exception) { lastErr = e }
+      listOf(listOf("t", "upload"), listOf("x", sha), listOf("server", server),
+        listOf("expiration", (nowSec() + 300).toString())))
+    return "Nostr " + B64.encode(Ev.toJsonArray(auth).toByteArray(Charsets.UTF_8))
+  }
+
+  private suspend fun blossomHead(server: String, sha: String): Boolean =
+    try { Net.head("${server.trimEnd('/')}/$sha") == 200 } catch (_: Exception) { false }
+
+  private suspend fun blossomPut(server: String, bytes: ByteArray, mime: String, sha: String, name: String): String {
+    val base = server.trimEnd('/')
+    val j = Net.putBytes("$base/upload", bytes, mime.ifEmpty { "application/octet-stream" },
+      mapOf("Authorization" to blossomAuth(base, sha, name), "X-SHA-256" to sha))
+    return j.optString("url", "").ifEmpty { "$base/$sha" }
+  }
+
+  /** Ask a server to fetch the blob itself. Null = unsupported/failed → caller direct-PUTs. */
+  private suspend fun blossomMirror(server: String, originUrl: String, sha: String, name: String): String? {
+    val base = server.trimEnd('/')
+    return try {
+      val j = Net.putJson("$base/mirror", JSONObject().put("url", originUrl),
+        mapOf("Authorization" to blossomAuth(base, sha, name)))
+      j.optString("url", "").ifEmpty { "$base/$sha" }
+    } catch (_: Exception) { null }
+  }
+
+  data class BlossomMultiUp(val urls: List<String>, val sha256: String, val mime: String, val size: Long, val name: String)
+
+  /** nostube-style fan-out: upload once, then HEAD-check + mirror everywhere else
+   *  SIMULTANEOUSLY. Succeeds if ANY server ends up with the bytes; mirror
+   *  failures retry once, then give up quietly — one sick server never fails
+   *  the upload, and the user never has to think about it. */
+  suspend fun blossomUploadMulti(bytes: ByteArray, name: String, mime: String): BlossomMultiUp =
+    withContext(Dispatchers.IO) {
+      val sha = Hex.encode(Sha.sha256(bytes))
+      val servers = blossomServers().map { it.trimEnd('/') }.filter { it.isNotEmpty() }.distinct()
+      if (servers.isEmpty()) throw RuntimeException("no Blossom servers configured")
+      var primary = ""
+      var primaryServer = ""
+      var lastErr: Exception? = null
+      for (s in servers) {
+        try {
+          primary = if (blossomHead(s, sha)) "$s/$sha" else blossomPut(s, bytes, mime, sha, name)
+          primaryServer = s
+          break
+        } catch (e: Exception) { lastErr = e }
+      }
+      if (primary.isEmpty()) throw lastErr ?: RuntimeException("upload failed")
+      val rest = servers.filter { it != primaryServer }
+      val mirrored = rest.map { s ->
+        async {
+          try {
+            if (blossomHead(s, sha)) return@async "$s/$sha"
+            blossomMirror(s, primary, sha, name) ?: blossomPut(s, bytes, mime, sha, name)
+          } catch (_: Exception) {
+            try {
+              delay(1500)
+              if (blossomHead(s, sha)) "$s/$sha"
+              else blossomMirror(s, primary, sha, name) ?: blossomPut(s, bytes, mime, sha, name)
+            } catch (_: Exception) { null }
+          }
+        }
+      }.awaitAll().filterNotNull()
+      BlossomMultiUp((listOf(primary) + mirrored).distinct(), sha, mime, bytes.size.toLong(), name)
     }
-    throw lastErr ?: RuntimeException("upload failed")
+
+  suspend fun blossomUpload(bytes: ByteArray, name: String, mime: String): BlossomUp = withContext(Dispatchers.IO) {
+    val m = blossomUploadMulti(bytes, name, mime)
+    BlossomUp(m.urls.first(), m.sha256, m.mime, m.size, m.name)
   }
 
   // ---------- group management ----------

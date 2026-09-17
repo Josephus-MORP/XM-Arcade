@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,13 +49,17 @@ import com.xmarcade.app.core.NostrEvent
 import com.xmarcade.app.core.Profile
 import com.xmarcade.app.core.Repo
 import com.xmarcade.app.core.Signer
+import com.xmarcade.app.core.VideoPipe
 import com.xmarcade.app.core.Webxdc
 import com.xmarcade.app.core.displayName
 import com.xmarcade.app.core.parseAppCard
 import com.xmarcade.app.core.timeAgo
+import com.xmarcade.app.core.uid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.io.File
 
 data class ChannelData(val group: Group, val channel: String)
 
@@ -489,6 +494,7 @@ fun ComposeScreen(replyTo: ReplyTo? = null) {
 @Composable
 fun StudioScreen(kindArg: String? = null) {
   val scope = rememberCoroutineScope()
+  val ctx = LocalContext.current
   var kind by remember { mutableStateOf(kindArg ?: "short") }
   var fileName by remember(kind) { mutableStateOf("") }
   var fileBytes by remember(kind) { mutableStateOf<ByteArray?>(null) }
@@ -571,14 +577,61 @@ fun StudioScreen(kindArg: String? = null) {
           }
           else -> {
             val mime = Platform.mimeFor(fileName)
-            val up = Repo.blossomUpload(fb, fileName, mime)
+            var payload: ByteArray = fb
+            var outMime = mime
+            var dim = ""; var durSec = 0.0
+            var thumbBytes: ByteArray? = null
+            try {
+              val safe = fileName.replace(Regex("[^A-Za-z0-9._-]+"), "_").takeLast(60)
+              val staged = File(ctx.cacheDir, "xm_up_" + uid() + "_" + safe.ifEmpty { "video" })
+              staged.writeBytes(fb)
+              try {
+                val info = VideoPipe.probe(staged)
+                val target: File
+                if (info != null && VideoPipe.needsTranscode(info, fileName)) {
+                  Nav.toast("Compressing video…")
+                  val (tw, th) = VideoPipe.targetSize(info.w, info.h)
+                  val out = File(ctx.cacheDir, "xmc_" + uid() + ".mp4")
+                  val ok = withTimeoutOrNull(8 * 60_000L) {
+                    try {
+                      VideoPipe.transcode(staged, out, tw, th, VideoPipe.targetBitrate(info.bitrate), info.fps, info.rotation)
+                      out.exists() && out.length() > 0
+                    } catch (_: Exception) { false }
+                  } == true
+                  if (ok) {
+                    dim = "${tw}x${th}"; durSec = info.durationMs / 1000.0
+                    payload = out.readBytes(); outMime = "video/mp4"
+                    target = out
+                  } else {
+                    if (info.w > 0) dim = "${info.w}x${info.h}"
+                    durSec = info.durationMs / 1000.0
+                    Nav.toast("Compression skipped, uploading original")
+                    target = staged
+                  }
+                  try { out.delete() } catch (_: Exception) {}
+                } else {
+                  if (info != null && info.w > 0) { dim = "${info.w}x${info.h}"; durSec = info.durationMs / 1000.0 }
+                  target = staged
+                }
+                thumbBytes = try { VideoPipe.thumbnail(target) } catch (_: Exception) { null }
+              } finally {
+                try { staged.delete() } catch (_: Exception) {}
+              }
+            } catch (_: Exception) { /* fall through: upload original bytes */ }
+            val serverCount = Repo.blossomServers().size
+            Nav.toast(if (serverCount > 1) "Uploading to $serverCount servers…" else "Uploading…")
+            val up = Repo.blossomUploadMulti(payload, fileName, outMime)
+            var thumbUrl = ""
+            if (thumbBytes != null) {
+              try { thumbUrl = Repo.blossomUpload(thumbBytes, "thumb.webp", "image/webp").url } catch (_: Exception) {}
+            }
             val tn = tagNames().distinct()
-            val (ev, res) = Repo.publishShort(up.url, title.ifEmpty { fileName }, tn, "", mime, up.sha256, 0.0,
-              desc.trim(), collabs.map { it.first })
-            val sh = com.xmarcade.app.core.ShortV(ev.id, ev.pubkey, ev.createdAt, up.url, "", mime, 0.0, tn, title.ifEmpty { fileName })
+            val (ev, res) = Repo.publishShort(up.urls.first(), title.ifEmpty { fileName }, tn, thumbUrl, outMime, up.sha256, durSec,
+              desc.trim(), collabs.map { it.first }, dim, payload.size.toLong(), up.urls.drop(1))
+            val sh = com.xmarcade.app.core.ShortV(ev.id, ev.pubkey, ev.createdAt, up.urls.first(), thumbUrl, outMime, durSec, tn, title.ifEmpty { fileName })
             withContext(Dispatchers.Main) {
               busy = false; resultShort = sh
-              Nav.toast(if (res.ok) "Short published" else "No relay accepted it")
+              Nav.toast(if (res.ok) "Short published (${up.urls.size}/$serverCount mirrors)" else "No relay accepted it")
             }
           }
         }
