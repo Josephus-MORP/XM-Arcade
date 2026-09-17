@@ -4,6 +4,10 @@ All notable changes to this project. Versions follow [SemVer](https://semver.org
 
 ## [Unreleased]
 
+## [1.0.3] — 2026-09-17
+
+- Welcome screen now shows the neon XM app icon instead of the drawn mark.
+
 ## [1.0.2] — 2026-09-17
 
 - Shorts feed fixed: Global is unfiltered NIP-71 again (kinds 21/22),

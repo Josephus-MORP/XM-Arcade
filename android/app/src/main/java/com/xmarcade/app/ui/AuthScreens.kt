@@ -1,5 +1,12 @@
 package com.xmarcade.app.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.xmarcade.app.R
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,7 +47,8 @@ fun WelcomeScreen() {
   Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 26.dp),
     horizontalAlignment = Alignment.CenterHorizontally) {
     Spacer(Modifier.height(52.dp))
-    XLogo(96.dp)
+    Image(painterResource(R.drawable.xm_logo), "XM Arcade logo",
+      Modifier.size(96.dp).clip(RoundedCornerShape(26.dp)), contentScale = ContentScale.Crop)
     Spacer(Modifier.height(20.dp))
     Text(buildAnnotatedString {
       append("Welcome to ")
