@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>XM Arcade — Preview</title>
+<style>
+:root{--navy:#0B1426;--surface:#141E33;--card:#1A2744;--orange:#FF6B00;--cyan:#00E5FF;--muted:#78909C}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--navy);color:#fff}
+a{color:var(--cyan)} .wrap{max-width:1100px;margin:0 auto;padding:24px}
+.hero{display:flex;gap:24px;align-items:center;background:linear-gradient(135deg,#0B1426 0%,#1A2744 100%);border:1px solid #243247;border-radius:20px;padding:20px}
+.hero img{width:140px;height:140px;border-radius:28px;object-fit:cover;border:2px solid var(--orange);box-shadow:0 10px 30px rgba(255,107,0,.35)}
+h1{margin:0;font-size:32px} h1 span{color:var(--orange)} .pill{display:inline-block;background:rgba(255,107,0,.15);border:1px solid var(--orange);color:var(--orange);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px}
+.phone{border:2px solid #243247;border-radius:22px;overflow:hidden;background:var(--surface);min-height:560px;display:flex;flex-direction:column}
+.phone header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #243247;background:#0B1426}
+.avatar{width:32px;height:32px;border-radius:50%;background:#1A2744;border:1.5px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:14px}
+.chip{font-size:10px;padding:3px 8px;border-radius:20px;border:1px solid var(--orange);color:var(--orange);background:rgba(255,107,0,.12)}
+.chip.cyan{border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.12)}
+.body{padding:10px;flex:1;overflow:auto}
+.video{background:#0f0f0f;border-radius:12px;height:220px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);border:1px solid #222;position:relative}
+.tags{position:absolute;bottom:50px;left:10px;display:flex;gap:6px}
+.tags span{color:var(--cyan);font-weight:700;font-size:12px}
+.bar{display:flex;gap:8px;align-items:center;position:absolute;bottom:8px;left:10px;right:10px;justify-content:space-between}
+.card{background:var(--card);border-radius:12px;padding:10px;border:1px solid #243247}
+.row{display:flex;gap:10px;align-items:center}
+.wallet{padding:14px;border-bottom:1px solid #243247;display:flex;gap:12px;align-items:center}
+.wallet b{font-size:26px} .score{font-size:11px;color:var(--muted)}
+.btn{background:var(--orange);color:#fff;border:none;padding:8px 14px;border-radius:10px;font-weight:700}
+.btn.outline{background:transparent;border:1.5px solid #243247;color:#fff}
+.note{background:var(--card);border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #243247}
+.slider{height:4px;background:#243247;border-radius:4px;position:relative}
+.slider i{position:absolute;left:0;top:0;bottom:0;width:35%;background:var(--orange);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <img src="data:image/png;base64,<!-- inline handled by file viewer will show external? Use path fallback -->" onerror="this.style.display='none'"/>
+    <div>
+      <div class="pill">NATIVE KOTLIN + JETPACK COMPOSE • ANDROID</div>
+      <h1>X<span>M</span> ARCADE</h1>
+      <p style="color:#B0BEC5;margin:6px 0 0">An extremely smooth, intuitive Nostr client that introduces people to Nostr through <b style="color:#fff">fun — not micro-blogging</b>. Shorts • Mini Apps • Music • Chats (Concord) • Wallets (⚡ + M).</p>
+      <p style="font-size:12px;color:#78909C;margin-top:8px">Logo uses Monero orange + white “M” • Default relays: nos.lol • ditto.pub • primal • fountain.fm • Blossom: ditto.pub • primal.net • data.haus • Follow tags: #music #fps #nature… all removable in Settings</p>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <span class="pill" style="background:#1A2744;border-color:#243247;color:#B0BEC5">Kotlin 1.9 • Compose BOM 2024.10 • Media3 • Hilt • DataStore • OkHttp</span>
+        <span class="pill" style="background:rgba(0,229,255,.12);border-color:#00E5FF;color:#00E5FF">All panes scroll vertically</span>
+      </div>
+    </div>
+  </div>
+
+  <p style="color:#78909C;font-size:13px;margin:18px 0 8px">Interactive wireframe translation — 7 panes matching your hand-drawn plans. Full code in <code>app/src/main/java/com/xmarcade</code>. Open in Android Studio.</p>
+
+  <div class="grid">
+    <!-- SHORTS -->
+    <div class="phone">
+      <header>
+        <div style="display:flex;gap:8px;align-items:center"><div class="avatar">◎</div><b>Shorts</b></div>
+        <div style="display:flex;gap:6px;align-items:center"><span class="chip">Global</span><span class="chip" style="opacity:.6">Tags</span><span class="chip" style="opacity:.6">Following</span></div>
+      </header>
+      <div class="body" style="padding:0">
+        <div style="display:flex;gap:6px;padding:8px;align-items:center"><span class="chip" style="background:rgba(76,175,80,.15);border-color:#4CAF50;color:#4CAF50">● 12 online now</span><span style="margin-left:auto;background:#FF6B00;color:#fff;padding:6px 8px;border-radius:8px;font-size:11px">⬆ upload</span></div>
+        <div class="video">▶ VIDEO
+          <div class="tags"><span>#music</span><span>#fps</span><span>#funny</span></div>
+          <div class="bar">
+            <div style="display:flex;gap:8px;align-items:center"><div class="avatar" style="width:28px;height:28px">◎</div><span style="font-size:12px;font-weight:700">SatoshiCat</span></div>
+            <div style="display:flex;gap:10px;font-size:14px"><span>😊</span><span style="color:#FFC107">⚡</span><span style="color:#FF6B00;font-weight:900">M</span><span>↗</span></div>
+          </div>
+        </div>
+        <div style="padding:10px;color:#B0BEC5;font-size:11px">Hashtags are <b style="color:#00E5FF">clickable to follow</b> right from video. No leaving the feed unless deep replies. Upload → all Blossom servers simultaneously (nostu.be redundancy).</div>
+      </div>
+    </div>
+
+    <!-- MINI APPS -->
+    <div class="phone">
+      <header><div style="display:flex;gap:8px;align-items:center"><div class="avatar">◎</div><b>Mini Apps</b></div><span class="chip cyan">#fps ▼</span></header>
+      <div class="body">
+        <div style="display:flex;gap:6px;margin-bottom:8px"><span class="chip cyan">#fps</span><span class="chip" style="opacity:.5">#platformer</span><span class="chip" style="opacity:.5">#arcade</span><span style="margin-left:auto;background:#FF6B00;color:#fff;padding:4px 8px;border-radius:8px;font-size:11px">⬆ add</span></div>
+        <div class="card">
+          <div class="row"><div style="width:48px;height:48px;background:#243247;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#FF6B00;font-weight:900;font-size:10px">APP<br/>Logo</div><div style="flex:1"><div style="font-weight:700;font-size:13px">Pixel Runner <span style="color:#00E5FF;font-size:10px">#platformer</span></div><div style="font-size:11px;color:#B0BEC5">Endless runner – jump, dash, zap!</div></div><span class="btn" style="padding:6px 12px;font-size:12px">Play</span></div>
+          <div style="display:flex;gap:10px;margin-top:10px;align-items:center;color:#78909C;font-size:13px"><span>◎ uploader</span><span>😊</span><span style="color:#FFC107">⚡</span><span style="color:#FF6B00;font-weight:900">M</span><span>↗ <small>→ concord</small></span><span style="margin-left:auto">⌄</span></div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <div class="row"><div style="width:48px;height:48px;background:#243247;border-radius:10px;display:flex;align-items:center;justify-content:center">🎮</div><div style="flex:1"><div style="font-weight:700">Space FPS</div><div style="font-size:11px;color:#B0BEC5">#fps #action</div></div><span class="btn" style="padding:6px 12px;font-size:12px">Play</span></div>
+          <div style="font-size:11px;color:#78909C;margin-top:8px">tap card → collapse/open description • share sends to concord chat group • webxdc via Armada/Ditto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MUSIC -->
+    <div class="phone">
+      <header><div style="display:flex;gap:8px;align-items:center"><div class="avatar">◎</div><b>Music</b></div><span style="font-size:10px;background:#1A2744;padding:4px 8px;border-radius:8px;color:#B0BEC5">View queue</span></header>
+      <div class="body">
+        <div style="display:flex;gap:6px"><span style="width:32px;height:32px;background:#1A2744;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#00E5FF">#rc</span><span style="margin-left:auto;color:#00E5FF">≡ add to queue</span></div>
+        <div style="margin-top:10px;display:flex;gap:10px;align-items:center;background:#1A2744;padding:8px;border-radius:10px">
+          <div style="width:48px;height:48px;background:#243247;border-radius:8px;display:flex;align-items:center;justify-content:center">💿</div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:700">Synth Rider <span style="color:#FFC107">⚡</span> <span style="color:#FF6B00">M</span></div><div style="font-size:11px;color:#78909C">Neon Nights • Midnight Drive</div><div class="slider" style="margin-top:6px"><i></i></div></div>
+          <div style="width:32px;height:32px;background:#243247;border-radius:8px;display:flex;align-items:center;justify-content:center">+</div>
+        </div>
+        <div style="margin-top:12px;background:#1A2744;padding:10px;border-radius:10px;display:flex;gap:10px;align-items:center;border:1px solid #243247">
+          <span style="color:#FF6B00">♫</span><div style="flex:1"><div style="font-size:10px;color:#78909C;font-weight:700">Now Playing</div><div style="font-size:12px">Prairie Wind — Dusty Strings</div></div><span style="color:#FF6B00;font-size:20px">⏸</span>
+        </div>
+        <div style="font-size:11px;color:#78909C;margin-top:8px">Music keeps playing across panes except Shorts. “Now Playing” banner pinned via shared MusicViewModel.</div>
+      </div>
+    </div>
+
+    <!-- CHATS -->
+    <div class="phone">
+      <header><div style="display:flex;gap:8px;align-items:center"><div class="avatar">◎</div><b>Chats</b></div><span class="chip">Unread</span><span style="margin-left:auto;background:#FF6B00;color:#fff;padding:6px 8px;border-radius:50%">+</span></header>
+      <div class="body" style="padding:0">
+        <div style="padding:10px;border-bottom:1px solid #243247;display:flex;gap:10px">
+          <div style="display:flex;gap:2px"><span style="color:#78909C">⋮⋮</span></div>
+          <div class="avatar" style="width:36px;height:36px">◎</div>
+          <div style="flex:1"><div style="font-weight:700;font-size:13px;color:#FF6B00">Arcade Lounge <span style="background:#FF6B00;color:#fff;border-radius:50%;padding:1px 6px;font-size:10px">@</span></div><div style="font-size:12px;color:#00E5FF">#general <span style="background:#FF6B00;color:#fff;border-radius:50%;padding:1px 5px;font-size:10px">3</span> #gaming</div></div>
+          <span style="background:#FF6B00;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px">3</span>
+        </div>
+        <div style="padding:10px;border-bottom:1px solid #243247;display:flex;gap:10px;opacity:.9">
+          <div class="avatar" style="width:36px;height:36px">◎</div>
+          <div style="flex:1"><div style="font-weight:700;color:#FF6B00">Monero Miners</div><div style="font-size:12px;color:#00E5FF">#xmr <span style="background:#FF6B00;color:#fff;border-radius:50%;padding:1px 5px;font-size:10px">7</span> #trading</div></div>
+        </div>
+        <div style="font-size:11px;color:#78909C;padding:10px">Concord groups (NOT NIP-29) • grab ⋮⋮ to reorder • tap #channel → channel • tap row → chat • webxdc + call integrated • “only appears if you have been mentioned”</div>
+      </div>
+    </div>
+
+    <!-- WALLET -->
+    <div class="phone">
+      <header><div style="display:flex;gap:8px;align-items:center"><div class="avatar">◎</div><b>Wallet</b></div><span style="display:flex;gap:6px"><span style="background:#FF6B00;color:#fff;padding:4px 8px;border-radius:8px;font-size:11px">↑ pay</span><span style="background:#00E5FF;color:#0B1426;padding:4px 8px;border-radius:8px;font-size:11px">↓ receive</span></span></header>
+      <div class="body" style="padding:0">
+        <div class="wallet"><span style="color:#FF6B00;font-weight:900;font-size:28px">M</span><div><b>0.02</b><div style="color:#00E5FF;font-size:12px">$2.84</div><div class="score">amount XMR • amount local</div></div><span style="margin-left:auto;color:#FF6B00">✓</span></div>
+        <div class="wallet"><span style="color:#FFC107;font-size:28px">⚡</span><div><b>27,000</b><div style="color:#00E5FF;font-size:12px">$0.42</div><div class="score">amount sats • amount local</div></div><span style="margin-left:auto;color:#FF6B00">✓</span></div>
+        <div style="margin:12px;background:#1A2744;padding:10px;border-radius:10px;font-size:11px;color:#B0BEC5">NWC (Ditto/Amethyst) or native Cake • External XMR (Amethyst payment targets) or native Cake • Auto-create for new accounts → tap card for tx log</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="phone">
+      <header><span style="width:32px;height:32px;background:#FF6B00;border-radius:50%;display:flex;align-items:center;justify-content:center">⚙</span><b>Settings</b><span style="margin-left:auto;color:#78909C;font-size:11px">◎ your pfp</span></header>
+      <div class="body">
+        <div class="card"><div style="font-weight:700;font-size:12px">Presets</div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #243247"><span>Zap ⚡</span><span style="color:#FFC107;font-weight:700">21 sats</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span>XAP <b style="color:#FF6B00">M</b></span><span style="color:#FF6B00">0.001 XMR</span></div></div>
+        <div class="card" style="margin-top:8px"><div style="font-weight:700;font-size:12px">Appearance</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px"><span>Dark mode</span><span style="width:36px;height:20px;background:#FF6B00;border-radius:10px;display:block"></span></div><div style="margin-top:8px"><div style="font-size:11px;color:#78909C">Secondary hue slider →</div><div style="height:6px;background:linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta);border-radius:4px;margin-top:4px"></div></div></div>
+        <div class="card" style="margin-top:8px"><div style="font-weight:700;font-size:12px">Follow tags</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><span class="chip">#music ×</span><span class="chip">#fps ×</span><span class="chip">#nature ×</span></div></div>
+        <div class="card" style="margin-top:8px"><div style="font-weight:700;font-size:12px">Relays & Blossom</div><div style="font-size:11px;color:#B0BEC5">All removable — edit/add nos.lol, ditto.pub… blossom.ditto.pub…</div></div>
+        <div class="card" style="margin-top:8px;border:1px solid #4CAF50"><div style="font-size:11px;color:#4CAF50">Switch profiles button appears right of “Profile” when >1 signed in • Backup nsec • Delete wallet/account</div></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="phone">
+      <header><div style="display:flex;gap:8px;align-items:center"><div class="avatar">◎</div><b>Profile</b></div><span style="background:#FF6B00;color:#fff;padding:4px 10px;border-radius:20px;font-size:11px">Edit</span></header>
+      <div class="body" style="padding:0">
+        <div style="height:70px;background:#1A2744"></div>
+        <div style="padding:0 12px;display:flex;gap:10px;margin-top:-20px;align-items:end"><div class="avatar" style="width:64px;height:64px;border:2px solid #FF6B00">◎</div><div><div style="font-weight:700">Arcade Player</div><div style="font-size:11px;color:#78909C">npub1…demo</div></div><span style="margin-left:auto;display:flex;gap:6px"><span style="background:#FFC107;color:#0B1426;padding:4px 8px;border-radius:20px;font-size:11px">⚡ Zap</span><span style="background:#FF6B00;color:#fff;padding:4px 8px;border-radius:20px;font-size:11px">M XAP</span></span></div>
+        <div style="padding:10px"><div style="font-size:12px;color:#B0BEC5">Explorer of nostr mini-apps, music & shorts. #music #fps</div><div style="margin-top:8px;display:inline-block;border:1px solid #243247;padding:6px 10px;border-radius:8px;font-size:11px">✎ Post a new note</div>
+          <div class="note" style="margin-top:10px"><div style="font-size:12px;font-weight:700">You • now</div><div style="font-size:12px;color:#B0BEC5;margin-top:4px">Just discovered XM Arcade mini-apps are actually fun 🎮⚡</div><div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:#78909C"><span>💬 Reply</span><span>↻ Repost</span><span>♡</span><span style="margin-left:auto;color:#FFC107">⚡</span><span style="color:#FF6B00">M</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;background:#141E33;border:1px solid #243247;border-radius:14px;padding:16px">
+    <h3 style="margin:0 0 8px;color:#FF6B00">Build & Run</h3>
+    <pre style="background:#0B1426;padding:12px;border-radius:10px;overflow:auto;font-size:12px;color:#B0BEC5">git clone https://github.com/Josephus-MORP/XM-Arcade
+cd XM-Arcade
+# Android Studio Hedgehog+ • JDK 17 • SDK 34
+./gradlew assembleDebug
+# APK → app/build/outputs/apk/debug/app-debug.apk
+# Install + test: Create Account → random default avatar • Shorts • Mini Apps Play → webxdc • Music persistent • Chats Concord • Wallet NWC/XMR • Settings → hue slider, relays, nsec backup, switch profiles</pre>
+    <p style="font-size:12px;color:#78909C">Full 2988-line Kotlin codebase committed to <code>/home/user/XM-Arcade</code>. All 8 default avatars in <code>drawable/default_avatar_*</code> + <code>app_logo.png</code> used as launcher. Pushing to your GitHub remote is one command away:</p>
+    <pre style="background:#0B1426;padding:10px;border-radius:10px;font-size:12px;color:#00E5FF">cd /home/user/XM-Arcade
+git remote add origin https://github.com/Josephus-MORP/XM-Arcade.git
+git branch -M main
+git push -u origin main --force</pre>
+  </div>
+
+  <p style="text-align:center;color:#78909C;font-size:11px;margin-top:16px">Refs: Amethyst • Armada • nostu.be • Ditto • wisp • nostria • Cake Wallet • Concord • fountain.fm • Monero M</p>
+</div>
+</body>
+</html>

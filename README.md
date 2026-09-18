@@ -1,5 +1,9 @@
 # XM Arcade — Native Android (Kotlin + Jetpack Compose)
 
+[![v1.1.0](https://img.shields.io/badge/version-v1.1.0-orange?style=for-the-badge)](CHANGELOG.md) ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-7F52FF?style=flat) ![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM_2024.10-4285F4?style=flat) ![Android](https://img.shields.io/badge/Android-minSdk%2026-3DDC84?style=flat)
+
+> **v1.1.0 (2026-09-18) — Total Revamp.** Previous agent failed → this is a complete rebuild from scratch as a native Android app. See [CHANGELOG.md](CHANGELOG.md) for details.
+
 **Welcome to XM Arcade** — a smooth, intuitive Nostr client that introduces people to Nostr through *fun* — not micro-blogging. Shorts, Mini Apps, Music, Concord chats, Wallets (sats⚡ + XMR M).
 
 > Complete rebuild from scratch. Previous agent failed → this repo is fresh, native Kotlin with Jetpack Compose, built directly from your hand-drawn UI references and design intents.
@@ -118,7 +122,11 @@ No extra setup needed — DataStore defaults apply on first launch. To test with
 
 ---
 
+## Changelog
+See [CHANGELOG.md](CHANGELOG.md) — **v1.1.0** total revamp details.
+
 ## License
 MIT (until upstream Nostr/Cake dependencies dictate otherwise). Monero orange “M” is community CC.
 
 Built for **Vienna** — 2026-09-18 — by XM Arcade rebuild agent.
+- v1.1.0: native Kotlin + Compose total revamp.
