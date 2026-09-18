@@ -21,10 +21,39 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    // Signing — uses env ORG_GRADLE_PROJECT_XM_* or local xm-arcade-release-secrets/passwords.sh
+    // Original agent generated: xm-arcade-release.keystore (RSA-4096, valid to 2056)
+    val xmStoreFile = (findProperty("XM_STORE_FILE") as String? ?: System.getenv("XM_STORE_FILE") ?: System.getenv("ORG_GRADLE_PROJECT_XM_STORE_FILE"))
+        ?.let { path -> File(path) }?.takeIf { f -> f.exists() }
+    val xmStorePassword = findProperty("XM_STORE_PASSWORD") as String? ?: System.getenv("XM_STORE_PASSWORD") ?: System.getenv("ORG_GRADLE_PROJECT_XM_STORE_PASSWORD")
+    val xmKeyAlias = findProperty("XM_KEY_ALIAS") as String? ?: System.getenv("XM_KEY_ALIAS") ?: System.getenv("ORG_GRADLE_PROJECT_XM_KEY_ALIAS") ?: "xmarcade"
+    val xmKeyPassword = findProperty("XM_KEY_PASSWORD") as String? ?: System.getenv("XM_KEY_PASSWORD") ?: System.getenv("ORG_GRADLE_PROJECT_XM_KEY_PASSWORD")
+
+    signingConfigs {
+        create("release") {
+            if (xmStoreFile != null && xmStorePassword != null && xmKeyPassword != null) {
+                storeFile = xmStoreFile
+                storePassword = xmStorePassword
+                keyAlias = xmKeyAlias
+                keyPassword = xmKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+                enableV4Signing = true
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+            isShrinkResources = false
         }
     }
     compileOptions {
